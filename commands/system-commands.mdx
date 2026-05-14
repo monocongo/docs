@@ -1,0 +1,570 @@
+---
+title: 'System Commands'
+description: 'Setup, configuration, diagnostics, and environment management'
+---
+
+# System Commands
+
+System commands help you configure providers, diagnose issues, manage project state, and switch between work modes.
+
+---
+
+## `/octo:setup` - Provider Configuration
+
+**Check setup status and get configuration instructions for AI providers.**
+
+### Syntax
+
+```bash
+/octo:setup
+/octo:sys-setup    # Full version with detailed docs
+```
+
+### What It Checks
+
+- Codex CLI installation and authentication
+- Gemini CLI installation and authentication
+- Perplexity API key configuration (optional)
+- Environment variables and shell configuration
+- Node.js and npm availability
+
+### Output Example
+
+```
+Claude Octopus Setup Status:
+
+🔴 Codex CLI:
+   Status: Installed ✓
+   Auth: OAuth configured ✓
+   
+🟡 Gemini CLI:
+   Status: Not installed ✗
+   Action: Run `npm install -g @google/gemini-cli`
+   
+🟣 Perplexity:
+   Status: Not configured (optional)
+   Info: Adds web search to research workflows
+```
+
+### Provider Setup
+
+<AccordionGroup>
+  <Accordion title="Codex CLI (OpenAI)" icon="robot">
+    **Installation:**
+    ```bash
+    npm install -g @openai/codex
+    ```
+    
+    **Authentication (Option 1 - OAuth):**
+    ```bash
+    codex login
+    ```
+    
+    **Authentication (Option 2 - API Key):**
+    ```bash
+    export OPENAI_API_KEY="sk-..."
+    # Add to ~/.zshrc or ~/.bashrc for persistence
+    echo 'export OPENAI_API_KEY="sk-..."' >> ~/.zshrc
+    ```
+    
+    Get API key from: https://platform.openai.com/api-keys
+  </Accordion>
+  
+  <Accordion title="Gemini CLI (Google)" icon="gem">
+    **Installation:**
+    ```bash
+    npm install -g @google/gemini-cli
+    ```
+    
+    **Authentication (Option 1 - OAuth):**
+    ```bash
+    gemini    # Opens browser for OAuth
+    ```
+    
+    **Authentication (Option 2 - API Key):**
+    ```bash
+    export GEMINI_API_KEY="AIza..."
+    # Add to ~/.zshrc or ~/.bashrc for persistence
+    echo 'export GEMINI_API_KEY="AIza..."' >> ~/.zshrc
+    ```
+    
+    Get API key from: https://aistudio.google.com/app/apikey
+  </Accordion>
+  
+  <Accordion title="Perplexity (Optional)" icon="magnifying-glass">
+    **Purpose:** Adds live web search with citations to research workflows
+    
+    **Configuration:**
+    ```bash
+    export PERPLEXITY_API_KEY="pplx-..."
+    # Add to ~/.zshrc or ~/.bashrc for persistence
+    echo 'export PERPLEXITY_API_KEY="pplx-..."' >> ~/.zshrc
+    ```
+    
+    Get API key from: https://www.perplexity.ai/settings/api
+    
+    <Info>Perplexity is fully optional. All workflows work without it.</Info>
+  </Accordion>
+</AccordionGroup>
+
+### Do I Need Both Providers?
+
+<Info>
+No! You only need **ONE provider** (Codex or Gemini) to use Claude Octopus.
+</Info>
+
+**Provider Strengths:**
+- **Codex (OpenAI):** Best for code generation, refactoring, complex logic
+- **Gemini (Google):** Best for analysis, long-context understanding, multi-modal tasks
+- **Perplexity:** Adds live web search to ground research in current data
+
+Having both enables multi-AI workflows where different models review each other's work, but a single provider works great for most tasks.
+
+### Verification
+
+After setup, verify with:
+```bash
+${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh detect-providers
+```
+
+You should see:
+- ✓ Codex: Installed and authenticated (oauth or api-key)
+- ✓ Gemini: Installed and authenticated (oauth or api-key)
+- ✓ Perplexity: Configured (api-key) — optional
+
+### Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="npm: command not found" icon="triangle-exclamation">
+    You need Node.js and npm installed.
+    
+    Install from: https://nodejs.org/
+  </Accordion>
+  
+  <Accordion title="Permission denied when installing CLIs" icon="lock">
+    Use `sudo npm install -g` or configure npm for user directory:
+    
+    ```bash
+    mkdir ~/.npm-global
+    npm config set prefix '~/.npm-global'
+    echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.zshrc
+    source ~/.zshrc
+    ```
+  </Accordion>
+  
+  <Accordion title="codex/gemini: command not found after installation" icon="terminal">
+    The CLI may not be in your PATH. Try:
+    
+    ```bash
+    # Reload shell profile
+    source ~/.zshrc  # or source ~/.bashrc
+    
+    # Or restart terminal
+    ```
+  </Accordion>
+  
+  <Accordion title="API key not persisting after terminal restart" icon="key">
+    Add the export statement to your shell profile:
+    
+    ```bash
+    # For zsh (macOS default)
+    echo 'export OPENAI_API_KEY="sk-..."' >> ~/.zshrc
+    echo 'export GEMINI_API_KEY="AIza..."' >> ~/.zshrc
+    source ~/.zshrc
+    
+    # For bash
+    echo 'export OPENAI_API_KEY="sk-..."' >> ~/.bashrc
+    echo 'export GEMINI_API_KEY="AIza..."' >> ~/.bashrc
+    source ~/.bashrc
+    ```
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## `/octo:doctor` - Environment Diagnostics
+
+**Comprehensive health check for Claude Octopus environment.**
+
+### Syntax
+
+```bash
+/octo:doctor
+```
+
+### What It Checks
+
+<Card title="Provider Health" icon="stethoscope">
+  - Codex CLI availability and authentication
+  - Gemini CLI availability and authentication
+  - Perplexity API configuration
+  - Model access and API quotas
+</Card>
+
+<Card title="Configuration" icon="sliders">
+  - Plugin installation and version
+  - Environment variables
+  - File permissions and paths
+  - Hook registration status
+</Card>
+
+<Card title="System Components" icon="microchip">
+  - Scheduler service status
+  - orchestrate.sh script availability
+  - Result file directory access
+  - Session state management
+</Card>
+
+### Output Example
+
+```
+🐙 Claude Octopus Health Check
+
+Providers:
+  ✓ Codex CLI - Installed, authenticated (oauth)
+  ✓ Gemini CLI - Installed, authenticated (api-key)
+  ✓ Perplexity - Configured
+  ✓ Claude - Active session
+
+Configuration:
+  ✓ Plugin installed (v8.25.0)
+  ✓ CLAUDE_PLUGIN_ROOT set
+  ✓ orchestrate.sh executable
+  ✓ Results directory writable
+
+Scheduler:
+  ✓ Scheduler service running
+  ✓ No pending jobs
+
+Hooks:
+  ✓ Pre-session hook registered
+  ✓ Auto-activation enabled
+
+✅ All systems operational
+```
+
+### When to Use
+
+- After initial installation
+- When commands aren't working as expected
+- Before running complex workflows
+- After environment changes (new shell, updated keys)
+- When debugging provider issues
+
+### Natural Language
+
+Just say:
+- "Run doctor"
+- "Check my setup"
+- "Is everything working?"
+- "Why isn't octopus working?"
+
+---
+
+## `/octo:status` - Project State
+
+**Show current Claude Octopus workflow and provider status.**
+
+### Syntax
+
+```bash
+/octo:status
+```
+
+### What It Shows
+
+- Current work mode (Dev/Knowledge)
+- Provider readiness and availability
+- Active workflow phase (if any)
+- Available result files from recent runs
+- Recommended next command
+
+### Output Example
+
+```
+🐙 Claude Octopus Status
+
+Mode: Dev Work Mode 🔧
+  Active personas: backend-architect, code-reviewer, debugger
+
+Providers:
+  🔴 Codex: Ready
+  🟡 Gemini: Ready
+  🔵 Claude: Active
+
+Recent Results:
+  - discover-synthesis (2 min ago)
+  - define-consensus (5 min ago)
+  
+Next: Run /octo:develop to begin implementation
+```
+
+### When to Use
+
+- Check current workflow state
+- Verify provider availability before starting
+- Find result files from previous phases
+- Understand where you are in a workflow
+
+---
+
+## `/octo:resume` - Restore Context
+
+**Resume work from the last known Claude Octopus session.**
+
+### Syntax
+
+```bash
+/octo:resume
+```
+
+### What It Does
+
+- Restores context from persisted Octopus state
+- Shows completed phases and current position
+- Identifies open blockers or issues
+- Suggests immediate next action
+
+### Output Example
+
+```
+🐙 Resuming Claude Octopus Session
+
+Project: User Authentication Feature
+Last active: 2 hours ago
+
+Completed:
+  ✓ Discover - OAuth research complete
+  ✓ Define - Requirements scoped
+  
+Current Phase: Develop
+  Status: 60% complete
+  Blocker: Need to resolve JWT signing algorithm
+  
+Next Action: Continue with /octo:develop
+```
+
+### When to Use
+
+- Starting a new terminal session
+- After a break in work
+- When you've lost context
+- To check what's left to do
+
+<Info>
+If no state exists, resume will explain there's nothing to restore and suggest starting with `/octo:embrace` or `/octo:discover`.
+</Info>
+
+---
+
+## `/octo:dev` - Dev Work Mode
+
+**Switch to Dev Work Mode - optimized for software development.**
+
+### Syntax
+
+```bash
+/octo:dev
+```
+
+### What It Does
+
+- Activates development-focused AI personas
+- Optimizes workflows for code, architecture, debugging
+- Sets default mode for technical tasks
+- Persists across sessions
+
+### Dev Mode Personas
+
+- **backend-architect** - System design and architecture
+- **code-reviewer** - Code quality and best practices
+- **debugger** - Problem diagnosis and fixes
+- **test-automator** - Testing and quality assurance
+- **performance-engineer** - Optimization and scalability
+
+### Best For
+
+- Building features and implementing APIs
+- Debugging code and fixing bugs
+- Technical architecture decisions
+- Code review and refactoring
+- Test-driven development
+
+### Output Example
+
+```
+🔧 Switched to Dev Work Mode
+
+Active Personas:
+  - backend-architect
+  - code-reviewer
+  - debugger
+  - test-automator
+  - performance-engineer
+
+Providers: Codex + Gemini + Claude
+
+Ready for: octo build, octo develop, octo review, octo tdd
+```
+
+---
+
+## `/octo:km` - Knowledge Work Mode
+
+**Switch to Knowledge Work Mode - optimized for research and analysis.**
+
+### Syntax
+
+```bash
+/octo:km [on|off]
+/octo:km         # Switch to Knowledge mode
+/octo:km on      # Switch to Knowledge mode (explicit)
+/octo:km off     # Switch to Dev mode
+```
+
+### What It Does
+
+- Activates research-focused AI personas
+- Optimizes workflows for user research, strategy, literature reviews
+- Persists across sessions
+- Can be toggled on/off
+
+### Knowledge Mode Personas
+
+- **ux-researcher** - User research and insights
+- **strategy-analyst** - Strategic planning and analysis
+- **research-synthesizer** - Literature review and synthesis
+- **data-analyst** - Quantitative analysis
+- **market-researcher** - Competitive analysis
+
+### Best For
+
+- User research and interviews
+- Strategy analysis and planning
+- Literature reviews and synthesis
+- Market research and competitive analysis
+- Document analysis and summarization
+
+### Output Example
+
+```
+🎓 Switched to Knowledge Work Mode
+
+Active Personas:
+  - ux-researcher
+  - strategy-analyst
+  - research-synthesizer
+  - data-analyst
+  - market-researcher
+
+Providers: Gemini + Claude (research-optimized)
+
+Ready for: octo research, octo discover, document analysis
+
+Recommended: Install document-skills plugin
+  /plugin install document-skills@anthropic-agent-skills
+```
+
+### Toggling Modes
+
+```bash
+/octo:km on      # Enable Knowledge mode
+/octo:km off     # Disable (switch to Dev mode)
+/octo:dev        # Alternative way to switch to Dev mode
+```
+
+---
+
+## Work Mode Comparison
+
+| Feature | Dev Work Mode 🔧 | Knowledge Work Mode 🎓 |
+|---------|------------------|------------------------|
+| **Primary Use** | Code, implementation | Research, analysis |
+| **Personas** | backend-architect, code-reviewer, debugger | ux-researcher, strategy-analyst, synthesizer |
+| **Providers** | Codex + Gemini + Claude | Gemini + Claude (research-optimized) |
+| **Commands** | develop, review, tdd, security | discover, research, analyze |
+| **Switch To** | `/octo:dev` | `/octo:km on` |
+
+<Tip>
+Both modes use the same AI providers but with different personas and optimizations for the task type.
+</Tip>
+
+---
+
+## Configuration Files
+
+Claude Octopus uses these configuration files:
+
+<Card title=".claude/claude-octopus.local.md" icon="file">
+  Local configuration for work mode and preferences
+  
+  ```yaml
+  ---
+  knowledge_mode: false  # true for Knowledge mode, false for Dev mode
+  ---
+  ```
+</Card>
+
+<Card title=".claude/session-intent.md" icon="bullseye">
+  Intent contract from planning phase (created by `/octo:plan`)
+  
+  Captures:
+  - User goal and success criteria
+  - Constraints and boundaries
+  - Knowledge level and scope clarity
+</Card>
+
+<Card title=".claude/session-plan.md" icon="map">
+  Execution plan with phase weights (created by `/octo:plan`)
+  
+  Contains:
+  - Phase weights (Discover/Define/Develop/Deliver)
+  - Deliverable description
+  - Execution commands
+</Card>
+
+---
+
+## Environment Variables
+
+### Provider Authentication
+
+```bash
+export OPENAI_API_KEY="sk-..."           # Codex authentication
+export GEMINI_API_KEY="AIza..."          # Gemini authentication
+export PERPLEXITY_API_KEY="pplx-..."     # Perplexity authentication (optional)
+```
+
+### Model Configuration
+
+```bash
+export OCTOPUS_CODEX_MODEL="gpt-4"       # Override Codex model
+export OCTOPUS_GEMINI_MODEL="gemini-pro" # Override Gemini model
+export OCTOPUS_OPUS_MODE="fast"          # Use fast Opus (6x cost, lower latency)
+```
+
+### Provider Control
+
+```bash
+export CODEX_SKIP=true                    # Disable Codex provider
+export GEMINI_SKIP=true                   # Disable Gemini provider
+```
+
+### Workflow Control
+
+```bash
+export OCTOPUS_AUTONOMY="autonomous"     # Set default autonomy mode
+```
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Workflow Commands" icon="diagram-project" href="/commands/workflow-commands">
+    Learn the Double Diamond phases
+  </Card>
+  <Card title="Skill Commands" icon="wand-magic-sparkles" href="/commands/skill-commands">
+    Explore specialized capabilities
+  </Card>
+</CardGroup>

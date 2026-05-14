@@ -1,0 +1,340 @@
+---
+title: Hook system
+description: Customize workflow behavior with lifecycle hooks and quality gates
+---
+
+Claude Octopus uses a hook system to inject custom logic at key points in the workflow lifecycle. Hooks enable quality gates, phase transitions, telemetry, and custom validations.
+
+## Available hooks
+
+Claude Octopus provides hooks for the following lifecycle events:
+
+| Event | When it fires | Use case |
+|-------|---------------|----------|
+| `PreToolUse` | Before Claude executes a tool (Bash, Write, Edit) | Quality gates, validation checks |
+| `PostToolUse` | After a tool completes | Architecture validation, security scans |
+| `TaskCompleted` | When a workflow task finishes | Phase transitions, metrics collection |
+| `TeammateIdle` | When an agent finishes and awaits next task | Agent scheduling, work distribution |
+| `SessionSync` | When conversation state changes | State persistence, backup |
+| `SetupComplete` | After `/octo:setup` finishes | Custom initialization |
+
+## Hook execution order
+
+For a typical workflow command like `/octo:embrace`, hooks fire in this sequence:
+
+```
+1. SetupComplete        (if first run)
+   ↓
+2. PreToolUse           (before each tool call)
+   ↓
+3. [Tool executes: Bash, Write, Edit, etc.]
+   ↓
+4. PostToolUse          (after each tool call)
+   ↓
+5. TaskCompleted        (when agent finishes)
+   ↓
+6. TeammateIdle         (agent awaits next work)
+   ↓
+7. SessionSync          (state persisted)
+```
+
+Quality gates typically use `PreToolUse` to block execution, while validation hooks use `PostToolUse` to analyze output.
+
+## Creating custom hooks
+
+### Step 1: Choose the event
+
+Decide which lifecycle event your hook should respond to. See the table above.
+
+### Step 2: Create the hook script
+
+Hooks live in `hooks/` or `.claude/hooks/`. Create a new executable script:
+
+```bash
+touch hooks/my-custom-gate.sh
+chmod +x hooks/my-custom-gate.sh
+```
+
+### Step 3: Write the hook logic
+
+#### PreToolUse hook example
+
+`PreToolUse` hooks validate before tool execution:
+
+```bash
+#!/bin/bash
+# hooks/budget-gate.sh
+# Blocks execution if token budget is exceeded
+
+set -euo pipefail
+
+# Read current session state
+SESSION_FILE="${HOME}/.claude-octopus/session.json"
+if [[ ! -f "$SESSION_FILE" ]]; then
+    echo '{"decision": "continue"}'
+    exit 0
+fi
+
+# Check token usage
+TOKENS_USED=$(jq -r '.tokens_used // 0' "$SESSION_FILE")
+BUDGET=${OCTOPUS_TOKEN_BUDGET:-100000}
+
+if [[ $TOKENS_USED -ge $BUDGET ]]; then
+    echo '{"decision": "block", "reason": "Token budget exceeded"}'
+    exit 0
+fi
+
+echo '{"decision": "continue"}'
+```
+
+<Warning>
+  `PreToolUse` hooks MUST return JSON with `{"decision": "continue"}` or `{"decision": "block", "reason": "..."}`. Malformed output will cause the workflow to fail.
+</Warning>
+
+#### PostToolUse hook example
+
+`PostToolUse` hooks analyze tool output:
+
+```bash
+#!/bin/bash
+# hooks/security-gate.sh
+# Validates security-auditor output for OWASP coverage
+
+set -euo pipefail
+
+# Read tool output from stdin
+output=$(cat 2>/dev/null || true)
+
+# Check for OWASP categories
+owasp_categories=0
+for pattern in "broken access" "cryptographic" "injection" "OWASP" "A0[1-9]"; do
+    if echo "$output" | grep -qiE "$pattern"; then
+        owasp_categories=$((owasp_categories + 1))
+    fi
+done
+
+if [[ $owasp_categories -lt 2 ]]; then
+    echo '{"decision": "block", "reason": "Insufficient OWASP coverage"}' >&2
+    exit 1
+fi
+
+echo '{"decision": "continue"}'
+```
+
+#### TaskCompleted hook example
+
+`TaskCompleted` hooks trigger phase transitions:
+
+```bash
+#!/bin/bash
+# hooks/task-completion-checkpoint.sh
+# Records task completion and triggers phase transition
+
+set -euo pipefail
+
+SESSION_FILE="${HOME}/.claude-octopus/session.json"
+[[ ! -f "$SESSION_FILE" ]] && exit 0
+
+# Read workflow state
+CURRENT_PHASE=$(jq -r '.phase // empty' "$SESSION_FILE")
+COMPLETED=$(jq -r '.phase_tasks.completed // 0' "$SESSION_FILE")
+TOTAL=$(jq -r '.phase_tasks.total // 0' "$SESSION_FILE")
+
+# Increment completed count
+COMPLETED=$((COMPLETED + 1))
+jq ".phase_tasks.completed = $COMPLETED" "$SESSION_FILE" > "${SESSION_FILE}.tmp" \
+    && mv "${SESSION_FILE}.tmp" "$SESSION_FILE"
+
+# Check if phase is complete
+if [[ "$COMPLETED" -ge "$TOTAL" ]]; then
+    echo "Phase $CURRENT_PHASE complete, transitioning..." >&2
+    # Trigger next phase (orchestrate.sh handles this)
+fi
+```
+
+### Step 4: Register the hook
+
+Hooks are registered via:
+
+1. **Filename convention** (automatic):
+   - `*-gate.sh` → `PreToolUse`
+   - `*-hook.md` → Documentation (with frontmatter registration)
+
+2. **Persona frontmatter** (persona-specific):
+
+```yaml
+---
+name: security-auditor
+hooks:
+  PostToolUse:
+    - matcher:
+        tool: Bash
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/security-gate.sh"
+---
+```
+
+3. **Global registration** (all personas):
+
+Create a hook markdown file with frontmatter:
+
+```markdown
+---
+event: PreToolUse
+tools: ["Bash", "Write", "Edit"]
+description: Validates quality gates before file modifications
+---
+
+# Quality Gate PreToolUse Hook
+
+This hook enforces quality gates...
+```
+
+See `hooks/quality-gate-hook.md` in source code:~/workspace/source/hooks/quality-gate-hook.md
+
+## Built-in hooks
+
+Claude Octopus ships with these hooks:
+
+### Quality gates
+
+- **`quality-gate.sh`** — Validates tangle output quality score (75% threshold)
+- **`security-gate.sh`** — Validates OWASP coverage in security audits  
+- **`architecture-gate.sh`** — Checks architecture decisions against principles
+- **`code-quality-gate.sh`** — Enforces coding standards
+- **`budget-gate.sh`** — Blocks execution if token budget exceeded
+- **`perf-gate.sh`** — Validates performance benchmarks
+
+### Phase management
+
+- **`task-completion-checkpoint.sh`** — Records task completion metrics
+- **`task-completed-transition.sh`** — Triggers phase transitions
+- **`task-dependency-validator.sh`** — Validates task dependencies
+
+### Session management
+
+- **`session-sync.sh`** — Persists conversation state
+- **`context-reinforcement.sh`** — Injects workflow context
+- **`config-change-handler.sh`** — Reloads config on changes
+
+### Safety and validation
+
+- **`sysadmin-safety-gate.sh`** — Blocks dangerous system commands
+- **`scheduler-security-gate.sh`** — Validates scheduled task safety
+- **`provider-routing-validator.sh`** — Validates multi-AI routing decisions
+
+### Telemetry
+
+- **`telemetry-webhook.sh`** — Sends events to external webhooks
+- **`octopus-statusline.sh`** — Updates CLI status display
+- **`octopus-hud.mjs`** — Visual HUD for active workflows
+
+### Worktree isolation (v8.26+)
+
+- **`worktree-setup.sh`** — Creates isolated git worktrees for agents
+- **`worktree-teardown.sh`** — Cleans up worktrees after completion
+
+See the full list in `hooks/` directory: ~/workspace/source/hooks/
+
+## Hook return values
+
+### PreToolUse hooks
+
+Must return JSON:
+
+```json
+{
+  "decision": "continue",
+  "additionalContext": {
+    "quality_score": 85,
+    "warnings": ["Consider edge cases"]
+  }
+}
+```
+
+or
+
+```json
+{
+  "decision": "block",
+  "reason": "Quality gate failed: score 65/75"
+}
+```
+
+### PostToolUse hooks
+
+Can analyze output and return validation results:
+
+```json
+{
+  "decision": "continue",
+  "issues_found": 3,
+  "severity": "medium"
+}
+```
+
+### TaskCompleted hooks
+
+Usually return phase transition data:
+
+```json
+{
+  "phase_complete": true,
+  "next_phase": "grasp",
+  "metrics": {
+    "duration_ms": 45000,
+    "tokens_used": 12000
+  }
+}
+```
+
+## Hook environment variables
+
+Hooks have access to:
+
+| Variable | Description |
+|----------|-------------|
+| `OCTOPUS_PHASE` | Current phase: `probe`, `grasp`, `tangle`, `ink` |
+| `OCTOPUS_WORKFLOW` | Workflow type: `embrace`, `debate`, `review`, etc. |
+| `CLAUDE_PLUGIN_ROOT` | Plugin installation directory |
+| `WORKSPACE_DIR` | Current workspace: `~/.claude-octopus` |
+| `PROJECT_ROOT` | Project root directory |
+| `OCTOPUS_DEBUG` | Debug mode enabled (`true`/`false`) |
+
+## Best practices
+
+1. **Fail fast** — Exit with non-zero status if critical validation fails
+2. **Idempotent** — Hooks may run multiple times; design accordingly
+3. **Minimal dependencies** — Use standard bash utilities (jq, grep, awk)
+4. **Timeout awareness** — Keep hooks fast (under 1 second) to avoid workflow delays
+5. **Security** — Never log sensitive data (API keys, tokens)
+6. **Error messages** — Provide actionable error messages to users
+
+## Debugging hooks
+
+Enable debug mode to see hook execution:
+
+```bash
+export OCTOPUS_DEBUG=true
+./scripts/orchestrate.sh embrace "build user auth"
+```
+
+You'll see:
+
+```
+[DEBUG] Executing PreToolUse hook: quality-gate.sh
+[DEBUG] Hook returned: {"decision": "continue"}
+[DEBUG] Executing PostToolUse hook: security-gate.sh
+[DEBUG] Hook returned: {"decision": "block", "reason": "..."}
+```
+
+## Source code reference
+
+- **Hook scripts**: `hooks/*.sh` in source code:~/workspace/source/hooks/
+- **Hook documentation**: `hooks/*-hook.md` in source code:~/workspace/source/hooks/
+- **Claude Code hooks**: `.claude/hooks/` for IDE-specific hooks
+
+## Related documentation
+
+- [Creating personas](/advanced/personas) — Persona-specific hooks
+- [Debugging guide](/troubleshooting/debugging) — Troubleshooting hook issues
+- [Workflow phases](/concepts/workflows) — Understanding phase transitions

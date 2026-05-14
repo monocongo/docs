@@ -1,0 +1,458 @@
+---
+title: MCP Server details
+description: Model Context Protocol server architecture and tool reference
+---
+
+The Claude Octopus MCP server exposes workflows as tools that any MCP-compatible client can consume. This enables integration with OpenClaw, Claude Desktop, Cursor, and other MCP clients.
+
+## Model Context Protocol overview
+
+The [Model Context Protocol (MCP)](https://modelcontextprotocol.io) is an open protocol for connecting AI assistants to external tools and data sources. It provides:
+
+- **Standardized tool interface** — Uniform tool registration and invocation
+- **Transport-agnostic** — Works over stdio, HTTP, WebSocket
+- **Security model** — Sandboxed execution, permission controls
+- **Type safety** — JSON Schema validation for parameters
+
+Claud Octopus implements an MCP server that delegates to `orchestrate.sh`, preserving exact behavioral parity with the Claude Code plugin.
+
+## Server architecture
+
+### Component diagram
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                     MCP Client                          │
+│           (OpenClaw, Claude Desktop, etc.)              │
+└────────────────────────┬────────────────────────────────┘
+                         │ MCP Protocol (stdio/HTTP)
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│                  MCP Server (Node.js)                   │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │  Tool Registry (11 tools)                        │   │
+│  │  - octopus_discover, octopus_define, etc.        │   │
+│  └──────────────────────┬───────────────────────────┘   │
+│                         │                               │
+│  ┌──────────────────────▼───────────────────────────┐   │
+│  │  Execution Engine                                 │   │
+│  │  - Parameter validation (Zod)                    │   │
+│  │  - Environment isolation                         │   │
+│  │  - Security checks                               │   │
+│  └──────────────────────┬───────────────────────────┘   │
+└─────────────────────────┼───────────────────────────────┘
+                          │ execFile()
+                          ▼
+┌─────────────────────────────────────────────────────────┐
+│              orchestrate.sh (Bash)                      │
+│  - Provider routing                                     │
+│  - Quality gates                                        │
+│  - Multi-agent orchestration                            │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Startup sequence
+
+1. Claude Code reads `.mcp.json` on plugin load
+2. Spawns MCP server: `node mcp-server/dist/index.js`
+3. Server initializes stdio transport
+4. Registers 11 tools with MCP SDK
+5. Loads skill metadata from `.claude/skills/*.md`
+6. Sends `server/initialized` message to client
+7. Client can now invoke tools
+
+### Configuration via .mcp.json
+
+The `.mcp.json` file tells Claude Code how to launch the server:
+
+```json
+{
+  "mcpServers": {
+    "octo-claw": {
+      "command": "node",
+      "args": ["./mcp-server/dist/index.js"],
+      "env": {
+        "CLAUDE_OCTOPUS_MCP_MODE": "true"
+      }
+    }
+  }
+}
+```
+
+**Key points:**
+- **Server name**: `octo-claw` (arbitrary identifier)
+- **Command**: `node` with path to compiled TypeScript
+- **Environment**: `CLAUDE_OCTOPUS_MCP_MODE=true` signals MCP execution context
+- **Transport**: stdio (stdin/stdout) — no network ports required
+
+## 11 exposed tools
+
+The MCP server registers these tools (see full API in [OpenClaw integration](/advanced/openclaw)):
+
+### Workflow tools (8)
+
+| Tool | Phase | Parameters |
+|------|-------|------------|
+| `octopus_discover` | Probe | `prompt` |
+| `octopus_define` | Grasp | `prompt` |
+| `octopus_develop` | Tangle | `prompt`, `quality_threshold?` |
+| `octopus_deliver` | Ink | `prompt` |
+| `octopus_embrace` | All 4 phases | `prompt`, `autonomy?` |
+| `octopus_debate` | Debate | `question`, `rounds?`, `style?`, `mode?` |
+| `octopus_review` | Review | `target` |
+| `octopus_security` | Security | `target` |
+
+### Introspection tools (2)
+
+| Tool | Purpose |
+|------|----------|
+| `octopus_list_skills` | List all 44 available skills |
+| `octopus_status` | Check provider availability |
+
+### IDE integration tool (1)
+
+| Tool | Purpose |
+|------|----------|
+| `octopus_set_editor_context` | Inject editor state (file, selection, cursor) |
+
+## Connecting MCP clients
+
+### Claude Desktop
+
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or equivalent:
+
+```json
+{
+  "mcpServers": {
+    "claude-octopus": {
+      "command": "node",
+      "args": ["/path/to/claude-octopus/mcp-server/dist/index.js"]
+    }
+  }
+}
+```
+
+Restart Claude Desktop. The tools appear in the tool palette.
+
+### OpenClaw
+
+Install the OpenClaw extension (see [OpenClaw integration](/advanced/openclaw)):
+
+```bash
+cd your-openclaw-installation
+npm install github:nyldn/claude-octopus#main
+```
+
+The extension auto-connects to the MCP server.
+
+### Cursor
+
+Cursor supports MCP via its settings:
+
+```json
+{
+  "mcp.servers": [
+    {
+      "name": "claude-octopus",
+      "command": "node",
+      "args": ["/path/to/claude-octopus/mcp-server/dist/index.js"]
+    }
+  ]
+}
+```
+
+### Custom MCP client
+
+Use the MCP SDK:
+
+```typescript
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+
+const transport = new StdioClientTransport({
+  command: "node",
+  args: ["/path/to/claude-octopus/mcp-server/dist/index.js"],
+});
+
+const client = new Client({
+  name: "my-client",
+  version: "1.0.0",
+}, {
+  capabilities: {},
+});
+
+await client.connect(transport);
+
+// List available tools
+const tools = await client.listTools();
+console.log(tools);
+
+// Invoke a tool
+const result = await client.callTool({
+  name: "octopus_discover",
+  arguments: {
+    prompt: "Research OAuth 2.0 patterns"
+  }
+});
+
+console.log(result);
+```
+
+## Tool execution flow
+
+### Example: `octopus_develop`
+
+1. **Client invokes tool**:
+   ```json
+   {
+     "name": "octopus_develop",
+     "arguments": {
+       "prompt": "Build user authentication",
+       "quality_threshold": 80
+     }
+   }
+   ```
+
+2. **Server validates parameters** (Zod schema):
+   ```typescript
+   const schema = z.object({
+     prompt: z.string().describe("What to implement"),
+     quality_threshold: z.number().min(0).max(100).default(75)
+   });
+   ```
+
+3. **Server builds environment**:
+   ```typescript
+   const env = {
+     PATH: process.env.PATH,
+     HOME: process.env.HOME,
+     CLAUDE_OCTOPUS_MCP_MODE: "true",
+     // Forward only allowed env vars
+     ...(process.env.OPENAI_API_KEY && { OPENAI_API_KEY: process.env.OPENAI_API_KEY }),
+   };
+   ```
+
+4. **Server executes orchestrate.sh**:
+   ```typescript
+   const { stdout, stderr } = await execFileAsync(
+     "/path/to/orchestrate.sh",
+     ["tangle", "Build user authentication"],
+     { env, timeout: 300_000 }
+   );
+   ```
+
+5. **orchestrate.sh runs workflow**:
+   - Detects available providers (Codex, Gemini, Claude)
+   - Routes to appropriate agents
+   - Runs quality gates
+   - Returns synthesis file
+
+6. **Server returns result**:
+   ```json
+   {
+     "content": [
+       {
+         "type": "text",
+         "text": "[Tangle synthesis output...]"
+       }
+     ],
+     "isError": false
+   }
+   ```
+
+## Security model
+
+### Environment variable isolation
+
+Only allowed environment variables are forwarded to `orchestrate.sh`:
+
+```typescript
+const BLOCKED_ENV_VARS = new Set([
+  "OCTOPUS_SECURITY_V870",      // Security hardening toggle
+  "OCTOPUS_GEMINI_SANDBOX",     // Sandbox mode
+  "OCTOPUS_CODEX_SANDBOX",      // Sandbox mode
+  "CLAUDE_OCTOPUS_AUTONOMY",    // Autonomy level
+]);
+
+const env = {
+  // Only essential system vars
+  PATH: process.env.PATH,
+  HOME: process.env.HOME,
+  TMPDIR: process.env.TMPDIR,
+  
+  // AI provider keys (if set)
+  ...(process.env.OPENAI_API_KEY && { OPENAI_API_KEY: process.env.OPENAI_API_KEY }),
+  
+  // Octopus config (filtered against blocklist)
+  ...Object.fromEntries(
+    Object.entries(process.env).filter(([k]) =>
+      (k.startsWith("OCTOPUS_") || k.startsWith("CLAUDE_OCTOPUS_")) &&
+      !BLOCKED_ENV_VARS.has(k)
+    )
+  ),
+};
+```
+
+See source code:~/workspace/source/mcp-server/src/index.ts:53-96
+
+### API key sanitization
+
+Error messages sanitize leaked API keys:
+
+```typescript
+const sanitized = msg.replace(/[A-Za-z_]+KEY=[^\s]+/g, "[REDACTED]");
+```
+
+### Path validation
+
+IDE context paths reject traversal attempts:
+
+```typescript
+for (const [label, value] of [["filename", filename], ["workspace_root", workspace_root]]) {
+  if (value && /\.\.[\\/ ]/.test(value)) {
+    return {
+      content: [{ type: "text", text: `Error: ${label} cannot contain '..'` }],
+      isError: true,
+    };
+  }
+}
+```
+
+### Selection size limit
+
+Editor selections are truncated to 50KB:
+
+```typescript
+const MAX_SELECTION_LENGTH = 50_000; // 50KB
+const safeSel = selection && selection.length > MAX_SELECTION_LENGTH
+  ? selection.slice(0, MAX_SELECTION_LENGTH)
+  : selection;
+```
+
+### Transport security
+
+**stdio transport** (default) is scoped to the spawning process — no network exposure.
+
+<Warning>
+  If switching to HTTP/SSE/WebSocket transport, add bearer token authentication.
+</Warning>
+
+## Skill metadata
+
+The server loads skill metadata from frontmatter:
+
+```typescript
+async function loadSkillMetadata(): Promise<SkillMeta[]> {
+  const skillsDir = resolve(PLUGIN_ROOT, ".claude/skills");
+  const files = await readdir(skillsDir);
+  
+  for (const file of files) {
+    if (!file.endsWith(".md")) continue;
+    const content = await readFile(resolve(skillsDir, file), "utf-8");
+    const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+    if (!frontmatterMatch) continue;
+    
+    const fm = frontmatterMatch[1];
+    const name = fm.match(/^name:\s*(.+)$/m)?.[1]?.trim();
+    const description = fm.match(/^description:\s*["']?(.+?)["']?\s*$/m)?.[1]?.trim();
+    
+    skills.push({ name, description, file });
+  }
+  
+  return skills;
+}
+```
+
+See source code:~/workspace/source/mcp-server/src/index.ts:121-152
+
+## Debugging the MCP server
+
+### Enable debug logs
+
+```bash
+export OCTOPUS_DEBUG=true
+node mcp-server/dist/index.js
+```
+
+### Test with MCP Inspector
+
+Use the [MCP Inspector](https://github.com/modelcontextprotocol/inspector) to test the server:
+
+```bash
+npx @modelcontextprotocol/inspector node mcp-server/dist/index.js
+```
+
+This opens a web UI for invoking tools and inspecting responses.
+
+### Check server logs
+
+Server logs are written to:
+- **Claude Code**: `~/.claude/logs/mcp-server.log`
+- **OpenClaw**: `~/.openclaw/logs/mcp-server.log`
+
+### Common issues
+
+<Accordion title="Server fails to start">
+  **Symptoms**: Client reports "MCP server not available"
+  
+  **Causes**:
+  - Missing dependencies: Run `npm install` in `mcp-server/`
+  - TypeScript not compiled: Run `npm run build` in `mcp-server/`
+  - Wrong Node.js version: Requires Node.js ≥18
+  
+  **Fix**:
+  ```bash
+  cd mcp-server
+  npm install
+  npm run build
+  node dist/index.js  # Should not error
+  ```
+</Accordion>
+
+<Accordion title="Tool invocation times out">
+  **Symptoms**: Client times out waiting for response
+  
+  **Causes**:
+  - orchestrate.sh hung on provider call
+  - Quality gate blocked execution
+  - Large synthesis file being generated
+  
+  **Fix**:
+  - Check `~/.claude-octopus/logs/orchestrate.log`
+  - Increase timeout in client config
+  - Enable debug mode: `OCTOPUS_DEBUG=true`
+</Accordion>
+
+<Accordion title="Environment variables not passing through">
+  **Symptoms**: orchestrate.sh can't find API keys
+  
+  **Causes**:
+  - Env vars not set in MCP server environment
+  - Blocked by security filter
+  
+  **Fix**:
+  - Set env vars in `.mcp.json`:
+    ```json
+    {
+      "env": {
+        "OPENAI_API_KEY": "sk-...",
+        "GEMINI_API_KEY": "..."
+      }
+    }
+    ```
+  - Check blocked vars list in `mcp-server/src/index.ts:53`
+</Accordion>
+
+## Source code reference
+
+- **MCP server**: `mcp-server/src/index.ts` in source code:~/workspace/source/mcp-server/src/index.ts
+- **MCP config**: `.mcp.json` in source code:~/workspace/source/.mcp.json
+- **Skill schema**: `mcp-server/src/schema/skill-schema.json`
+- **Package config**: `mcp-server/package.json`
+
+## Related documentation
+
+- [OpenClaw integration](/advanced/openclaw) — Installing and configuring OpenClaw extension
+- [Workflows](/concepts/workflows) — Understanding workflow phases
+- [Security](/commands/skill-commands#security) — Security model and threat mitigation
+- [Debugging guide](/troubleshooting/debugging) — Troubleshooting workflows

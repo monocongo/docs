@@ -1,0 +1,579 @@
+---
+title: Working with workflows
+description: Understand Claude Octopus workflows, the Double Diamond methodology, quality gates, and how to choose the right workflow for your task
+---
+
+# Working with workflows
+
+Claude Octopus structures work using the **Double Diamond methodology**—four phases that move from divergent exploration to convergent delivery. This guide covers workflow progression, quality gates, and choosing the right workflow.
+
+## The Double Diamond
+
+Adapted from the UK Design Council's framework, the Double Diamond ensures quality through structured phases:
+
+```
+   DISCOVER      DEFINE       DEVELOP      DELIVER
+
+  (diverge)   (converge)   (diverge)   (converge)
+
+    Probe       Grasp        Tangle        Ink
+
+  Research → Requirements → Build → Validate
+```
+
+### Four phases
+
+<Steps>
+  <Step title="Discover (Probe)" icon="magnifying-glass">
+    **Purpose:** Divergent research and exploration
+    
+    **Activities:**
+    - Multi-provider research (Codex + Gemini + Claude)
+    - Broad ecosystem analysis
+    - Technology comparison
+    - Best practices research
+    - Community insights
+    
+    **Output:** Research synthesis document
+    
+    **Command:** `/octo:discover` or `/octo:probe`
+    
+    **Visual indicator:** 🐙 🔍
+  </Step>
+  
+  <Step title="Define (Grasp)" icon="crosshairs">
+    **Purpose:** Convergent consensus building
+    
+    **Activities:**
+    - Synthesize research findings
+    - Build consensus on approach
+    - Define requirements clearly
+    - Identify constraints
+    - Establish success criteria
+    
+    **Output:** Consensus document with requirements
+    
+    **Command:** `/octo:define` or `/octo:grasp`
+    
+    **Visual indicator:** 🐙 🎯
+  </Step>
+  
+  <Step title="Develop (Tangle)" icon="wrench">
+    **Purpose:** Divergent implementation
+    
+    **Activities:**
+    - Multi-provider code generation
+    - Implementation with quality gates
+    - Testing and validation
+    - Security review
+    - Performance optimization
+    
+    **Output:** Implementation with validation report
+    
+    **Command:** `/octo:develop` or `/octo:tangle`
+    
+    **Visual indicator:** 🐙 🛠️
+  </Step>
+  
+  <Step title="Deliver (Ink)" icon="check">
+    **Purpose:** Convergent final validation
+    
+    **Activities:**
+    - Quality assurance
+    - Final synthesis
+    - Documentation
+    - Delivery certification
+    - User acceptance
+    
+    **Output:** Final delivery document
+    
+    **Command:** `/octo:deliver` or `/octo:ink`
+    
+    **Visual indicator:** 🐙 ✅
+  </Step>
+</Steps>
+
+## Running individual phases vs full workflows
+
+### Individual phases
+
+Run phases individually for maximum control:
+
+```bash
+# Run just research
+/octo:discover OAuth authentication patterns
+
+# Run just definition
+/octo:define requirements for OAuth implementation
+
+# Run just implementation
+/octo:develop OAuth authentication system
+
+# Run just validation
+/octo:deliver OAuth implementation
+```
+
+**When to use:**
+- You want to review output before proceeding
+- Requirements may change between phases
+- High-stakes features requiring oversight at each step
+- Learning or experimenting with the methodology
+
+**Example workflow:**
+```bash
+# 1. Research first
+/octo:discover caching strategies for high-traffic APIs
+# → Review synthesis, identify Redis as top candidate
+
+# 2. Define requirements
+/octo:define Redis caching layer requirements
+# → Review consensus, adjust constraints
+
+# 3. Implement
+/octo:develop Redis caching layer
+# → Review implementation against requirements
+
+# 4. Validate
+/octo:deliver Redis caching implementation
+# → Final go/no-go decision
+```
+
+### Full workflow (Embrace)
+
+Run all 4 phases automatically:
+
+```bash
+/octo:embrace build user authentication system
+```
+
+**What happens:**
+1. **Discover**: Multi-provider research
+2. **Define**: Consensus building on approach
+3. **Develop**: Implementation with quality gates
+4. **Deliver**: Final validation and review
+
+**When to use:**
+- Clear requirements from the start
+- Trusted, well-understood features
+- Autonomous mode enabled (see below)
+- You want end-to-end workflow without interruptions
+
+### Autonomy modes
+
+Configure how much oversight you want during embrace workflows:
+
+<Tabs>
+  <Tab title="Supervised (Default)">
+    **Approval required after each phase**
+    
+    - Maximum control and oversight
+    - Review synthesis before proceeding to next phase
+    - Best for critical features or learning
+    
+    **Example:**
+    ```bash
+    /octo:embrace build payment processing
+    # Pauses after Discover for approval
+    # → Review research synthesis
+    # → Approve to proceed to Define
+    # Pauses after Define for approval
+    # → Review consensus
+    # → Approve to proceed to Develop
+    # ...
+    ```
+  </Tab>
+  
+  <Tab title="Semi-Autonomous">
+    **Approval only when quality gates fail**
+    
+    - Balanced approach
+    - Auto-proceeds if quality gates pass
+    - Intervenes only on failures
+    - Best for most use cases
+    
+    **Example:**
+    ```bash
+    /octo:embrace build user authentication --autonomy semi-autonomous
+    # Auto-proceeds through phases
+    # Pauses only if consensus < 75% or security issues found
+    ```
+  </Tab>
+  
+  <Tab title="Autonomous">
+    **Runs all 4 phases automatically**
+    
+    - No interruptions
+    - Review output, not every step
+    - Best for trusted, low-risk tasks
+    - Factory mode uses this by default
+    
+    **Example:**
+    ```bash
+    /octo:embrace build caching layer --autonomy autonomous
+    # Runs all phases without intervention
+    # Present final results when complete
+    ```
+  </Tab>
+</Tabs>
+
+## Choosing the right workflow
+
+Claude Octopus provides specialized workflows beyond the Double Diamond phases.
+
+### Workflow decision tree
+
+<Accordion title="I want to research a topic thoroughly">
+  **Use:** `/octo:research` or `/octo:discover`
+  
+  **What you get:**
+  - Multi-AI research (Codex + Gemini + Claude)
+  - Comprehensive analysis of options
+  - Trade-off evaluation
+  - Best practice identification
+  
+  **Example:**
+  ```bash
+  /octo:research microservices patterns
+  ```
+</Accordion>
+
+<Accordion title="I want to debate two approaches">
+  **Use:** `/octo:debate`
+  
+  **What you get:**
+  - Structured three-way AI debate
+  - Technical perspective (Codex)
+  - Ecosystem perspective (Gemini)
+  - Moderator and synthesis (Claude)
+  - Consensus score
+  
+  **Example:**
+  ```bash
+  /octo:debate Redis vs DynamoDB for session storage
+  ```
+</Accordion>
+
+<Accordion title="I want to build a feature end-to-end">
+  **Use:** `/octo:embrace`
+  
+  **What you get:**
+  - Full 4-phase workflow
+  - Quality gates between phases
+  - Multi-AI perspectives throughout
+  - Configurable autonomy
+  
+  **Example:**
+  ```bash
+  /octo:embrace build payment processing
+  ```
+</Accordion>
+
+<Accordion title="I want to review existing code">
+  **Use:** `/octo:review`
+  
+  **What you get:**
+  - Multi-AI code review
+  - Security vulnerability detection
+  - 4-dimension scoring (correctness, security, performance, maintainability)
+  - Best practices enforcement
+  
+  **Example:**
+  ```bash
+  /octo:review src/auth.ts
+  ```
+</Accordion>
+
+<Accordion title="I want to write tests first, then code">
+  **Use:** `/octo:tdd`
+  
+  **What you get:**
+  - Red-green-refactor discipline
+  - Tests written before implementation
+  - Incremental feature development
+  - Continuous validation
+  
+  **Example:**
+  ```bash
+  /octo:tdd create user registration
+  ```
+</Accordion>
+
+<Accordion title="I want to scan for vulnerabilities">
+  **Use:** `/octo:security`
+  
+  **What you get:**
+  - OWASP Top 10 vulnerability scanning
+  - Authentication/authorization review
+  - Input validation checks
+  - Red team analysis
+  
+  **Example:**
+  ```bash
+  /octo:security src/api/
+  ```
+</Accordion>
+
+<Accordion title="I want to go from spec to shipping code">
+  **Use:** `/octo:factory`
+  
+  **What you get:**
+  - Autonomous spec-to-software pipeline
+  - Holdout testing (80/20 split)
+  - Satisfaction scoring
+  - PASS/WARN/FAIL verdict
+  
+  **Example:**
+  ```bash
+  /octo:factory "build a CLI that converts CSV to JSON"
+  ```
+</Accordion>
+
+<Accordion title="I want to debug a tricky issue">
+  **Use:** `/octo:debug`
+  
+  **What you get:**
+  - Systematic debugging
+  - Evidence gathering
+  - Root cause identification
+  - Fix with verification
+  
+  **Example:**
+  ```bash
+  /octo:debug failing test in auth.spec.ts
+  ```
+</Accordion>
+
+<Accordion title="I just want to run something quick">
+  **Use:** `/octo:quick`
+  
+  **What you get:**
+  - Lightweight, single-phase execution
+  - No multi-AI overhead
+  - Fast results
+  
+  **Example:**
+  ```bash
+  /octo:quick add logging to auth.ts
+  ```
+</Accordion>
+
+## Workflow progression and quality gates
+
+Quality gates ensure sloppy work doesn't advance to the next phase.
+
+### Quality gate thresholds
+
+<CardGroup cols={2}>
+  <Card title="Discover" icon="magnifying-glass">
+    **Gate:** All providers responded successfully
+    
+    **Checks:**
+    - Codex CLI returned valid synthesis
+    - Gemini CLI returned valid synthesis
+    - Claude synthesis completed
+    
+    **Failure action:**
+    - Retry with timeout increase
+    - Proceed with available providers
+    - User review in semi-autonomous mode
+  </Card>
+  
+  <Card title="Define" icon="crosshairs">
+    **Gate:** Consensus achieved (75%+ agreement)
+    
+    **Checks:**
+    - Requirements clearly defined
+    - Constraints identified
+    - Success criteria established
+    - 75% consensus across providers
+    
+    **Failure action:**
+    - Re-run define with clarifying questions
+    - User review required
+  </Card>
+  
+  <Card title="Develop" icon="wrench">
+    **Gate:** Security, performance, best practices validated
+    
+    **Checks:**
+    - No critical security issues
+    - Performance within acceptable range
+    - Best practices followed
+    - Tests written and passing
+    
+    **Failure action:**
+    - Remediation with context from validation report
+    - Re-run develop phase
+    - User review in semi-autonomous mode
+  </Card>
+  
+  <Card title="Deliver" icon="check">
+    **Gate:** Final quality certification passed
+    
+    **Checks:**
+    - All acceptance criteria met
+    - No blocking issues
+    - Documentation complete
+    - Go/no-go recommendation
+    
+    **Failure action:**
+    - Provide detailed failure report
+    - Suggest remediation steps
+    - User decision on next steps
+  </Card>
+</CardGroup>
+
+### 75% consensus threshold
+
+The develop (tangle) phase requires **75% consensus** across AI providers before advancing:
+
+**Example:**
+```
+Codex: Recommends JWT-based authentication (confidence: 85%)
+Gemini: Recommends OAuth 2.0 with PKCE (confidence: 90%)
+Claude: Synthesizes to OAuth 2.0 with JWT tokens (confidence: 80%)
+
+Consensus score: 78% ✓
+→ Quality gate passed, proceed to deliver
+```
+
+If consensus < 75%:
+```
+Codex: Recommends Redis for caching (confidence: 60%)
+Gemini: Recommends Memcached for caching (confidence: 65%)
+Claude: Unable to synthesize clear recommendation
+
+Consensus score: 62% ✗
+→ Quality gate failed, re-run define phase with clarification
+```
+
+## Examples from real use cases
+
+### Use case 1: API authentication research
+
+**Goal:** Research OAuth 2.0 vs JWT authentication for a new API
+
+**Workflow:**
+```bash
+# 1. Research both options
+/octo:discover OAuth 2.0 vs JWT authentication patterns
+```
+
+**Output:**
+- Codex analysis: Technical implementation details, security considerations
+- Gemini analysis: Ecosystem adoption, library support, community insights
+- Claude synthesis: Comparison table, recommendations based on use case
+
+**Outcome:** Team chose OAuth 2.0 with JWT access tokens based on multi-AI synthesis
+
+---
+
+### Use case 2: End-to-end feature development
+
+**Goal:** Build complete user authentication system from research to delivery
+
+**Workflow:**
+```bash
+# Run full lifecycle in supervised mode
+/octo:embrace build user authentication system
+```
+
+**Progression:**
+1. **Discover** (research): OAuth patterns, JWT, session management → Approved
+2. **Define** (consensus): OAuth 2.0 + JWT + refresh tokens → 82% consensus → Approved
+3. **Develop** (implementation): Auth endpoints, token generation, validation → Security validated → Approved
+4. **Deliver** (validation): Code review passed, security scan clean → Go recommendation → Shipped
+
+**Quality gates:**
+- All 4 gates passed
+- No security issues found
+- Performance within acceptable range (< 200ms token validation)
+
+---
+
+### Use case 3: Architectural decision debate
+
+**Goal:** Decide between monorepo and microservices architecture
+
+**Workflow:**
+```bash
+# 3-round adversarial debate
+/octo:debate -r 3 -d adversarial monorepo vs microservices
+```
+
+**Debate structure:**
+- **Round 1:** Opening arguments (Codex: microservices, Gemini: monorepo, Claude: moderates)
+- **Round 2:** Rebuttals and counterarguments
+- **Round 3:** Final synthesis and consensus
+
+**Outcome:** 68% consensus for monorepo with future migration path to microservices
+
+---
+
+### Use case 4: Security audit and remediation
+
+**Goal:** Audit authentication module for OWASP vulnerabilities
+
+**Workflow:**
+```bash
+# 1. Security scan
+/octo:security src/auth/
+
+# 2. Code review for remediation
+/octo:review src/auth/ --focus security
+
+# 3. Validate fixes
+/octo:deliver src/auth/
+```
+
+**Findings:**
+- 2 critical issues (JWT secret hardcoded, no rate limiting)
+- 3 medium issues (weak password validation, missing CSRF protection)
+- Remediation applied with adversarial review
+- Final scan: 0 critical issues
+
+---
+
+### Use case 5: Spec-to-software pipeline
+
+**Goal:** Build CLI tool from specification with holdout testing
+
+**Workflow:**
+```bash
+# Dark Factory mode with custom satisfaction target
+/octo:factory --spec ./specs/csv-to-json-cli.md --satisfaction-target 0.90
+```
+
+**Pipeline execution:**
+1. Parse spec → extracted 12 behaviors
+2. Generate scenarios → 30 test scenarios created
+3. Split holdout → 24 training, 6 blind scenarios
+4. Embrace workflow → full implementation
+5. Holdout tests → 5/6 passed (83% holdout accuracy)
+6. Score satisfaction → 0.87 composite score
+7. Report → **WARN** verdict (below 0.90 target)
+
+**Remediation:**
+- Reviewed failed holdout scenario
+- Re-ran factory with refined spec
+- Second run: 0.92 composite score → **PASS**
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Using commands" icon="terminal" href="/guides/commands">
+    Learn command structure, the smart router, and command composition
+  </Card>
+  
+  <Card title="Configuring providers" icon="plug" href="/guides/providers">
+    Set up Codex, Gemini, and configure provider selection
+  </Card>
+  
+  <Card title="Configuration" icon="gear" href="/guides/configuration">
+    Environment variables, autonomy modes, and custom hooks
+  </Card>
+  
+  <Card title="Architecture" icon="sitemap" href="/concepts/architecture">
+    Deep dive into the Double Diamond methodology
+  </Card>
+</CardGroup>

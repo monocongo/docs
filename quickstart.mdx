@@ -1,0 +1,284 @@
+---
+title: Quickstart
+description: Get from zero to your first Claude Octopus workflow in under 5 minutes.
+---
+
+# Quickstart
+
+Get Claude Octopus running and try your first multi-AI workflow.
+
+## Prerequisites
+
+- **Claude Code v2.1.50 or later** — Check your version with the about menu in Claude Code
+- No external API keys required to start (Claude is built-in)
+
+## Installation
+
+<Steps>
+  <Step title="Add the plugin marketplace">
+    Open Claude Code and run:
+
+    ```bash
+    /plugin marketplace add https://github.com/nyldn/claude-octopus.git
+    ```
+
+    <Info>This adds the Claude Octopus plugin repository to your available marketplace sources.</Info>
+  </Step>
+
+  <Step title="Install the plugin">
+    ```bash
+    /plugin install claude-octopus@nyldn-plugins
+    ```
+
+    <Note>Installation is scoped to your user by default. Add `--scope project` to install per-project instead.</Note>
+  </Step>
+
+  <Step title="Restart Claude Code">
+    Fully quit and restart Claude Code to activate the plugin:
+
+    - **macOS**: Cmd+Q, then reopen
+    - **Windows/Linux**: Exit completely, then relaunch
+  </Step>
+</Steps>
+
+### Alternative: Install from terminal
+
+If you prefer the command line:
+
+```bash
+claude -p "/plugin marketplace add https://github.com/nyldn/claude-octopus.git"
+claude -p "/plugin install claude-octopus@nyldn-plugins"
+```
+
+## Setup and configuration
+
+<Steps>
+  <Step title="Run setup">
+    After restarting Claude Code, run the setup command:
+
+    ```bash
+    /octo:setup
+    ```
+
+    This auto-detects installed providers and shows what's available.
+  </Step>
+
+  <Step title="Review provider status">
+    Setup shows which AI providers are ready:
+
+    ```
+    Claude Octopus Setup Status
+
+    Providers:
+      Claude: ✓ Built-in (included with Claude Code)
+      Codex CLI: ✗ Not installed
+      Gemini CLI: ✗ Not installed
+
+    You can use Claude Octopus with just Claude!
+    All personas, workflows, and skills are available.
+
+    For multi-AI features, install Codex or Gemini CLIs.
+    ```
+
+    <Info>**You're ready to use Claude Octopus!** External providers (Codex, Gemini) are optional and only needed for multi-AI orchestration features.</Info>
+  </Step>
+
+  <Step title="Optional: Add external providers">
+    To enable multi-AI features (parallel research, adversarial debate), configure additional providers:
+
+    **Codex (OpenAI):**
+    ```bash
+    # OAuth (recommended - included in ChatGPT subscription)
+    codex login
+
+    # OR API key (per-token billing)
+    export OPENAI_API_KEY=your_key_here
+    ```
+
+    **Gemini (Google):**
+    ```bash
+    # OAuth (recommended - included in AI subscription)
+    gemini login
+
+    # OR API key (per-token billing)
+    export GEMINI_API_KEY=your_key_here
+    ```
+
+    Then run `/octo:setup` again to verify.
+  </Step>
+</Steps>
+
+## Your first workflow
+
+Let's run a complete four-phase workflow with `/octo:embrace`:
+
+<Steps>
+  <Step title="Start the workflow">
+    ```bash
+    /octo:embrace research and implement a simple cache
+    ```
+
+    <Info>The embrace command runs all four phases: **Discover → Define → Develop → Deliver**</Info>
+  </Step>
+
+  <Step title="Answer workflow questions">
+    Claude will ask clarifying questions:
+
+    - **Scope**: Choose "Small feature" for this example
+    - **Focus areas**: Select "Architecture design" and "Performance"
+    - **Autonomy**: Choose "Supervised" to review after each phase
+  </Step>
+
+  <Step title="Review the visual indicators">
+    You'll see which AI providers are active:
+
+    ```
+    🐙 CLAUDE OCTOPUS ACTIVATED - Full Double Diamond Workflow
+    🐙 Embrace: Research and implement a simple cache
+
+    All Phases:
+    🔍 Discover - Multi-provider research
+    🎯 Define - Consensus building
+    🛠️ Develop - Implementation with quality gates
+    ✅ Deliver - Final validation and review
+
+    Providers:
+    🔵 Claude: Available ✓
+    🔴 Codex CLI: Not installed (optional)
+    🟡 Gemini CLI: Not installed (optional)
+    ```
+  </Step>
+
+  <Step title="Watch the phases execute">
+    Claude Octopus will:
+
+    1. **Discover** — Research caching patterns and approaches
+    2. **Define** — Clarify requirements and scope
+    3. **Develop** — Implement the cache with quality validation
+    4. **Deliver** — Final review and recommendations
+
+    After each phase in supervised mode, you'll be asked to approve before continuing.
+  </Step>
+</Steps>
+
+## Try these next
+
+Now that you've run your first workflow, explore other commands:
+
+### Quick research
+
+```bash
+/octo:research OAuth 2.0 best practices
+```
+
+Get multi-perspective research on any topic (uses just Discover phase).
+
+### Structured debate
+
+```bash
+/octo:debate Redis vs Memcached for session storage
+```
+
+See multiple AI perspectives debate with synthesis and recommendations.
+
+### Code review
+
+```bash
+/octo:review src/auth/
+```
+
+Get comprehensive code quality and security analysis.
+
+### Test-driven development
+
+```bash
+/octo:tdd implement user registration
+```
+
+Build features test-first with red-green-refactor methodology.
+
+### Dark Factory mode
+
+```bash
+/octo:factory "build a CLI tool that validates JSON files"
+```
+
+Give a spec, get working software autonomously.
+
+## Smart routing
+
+<Note>
+**Don't remember command names?** Just describe what you need:
+
+```
+octo research microservices patterns    → routes to /octo:discover
+octo build user authentication          → routes to /octo:develop
+octo compare REST vs GraphQL            → routes to /octo:debate
+```
+
+The smart router parses your intent and activates the right workflow.
+</Note>
+
+## Understanding command structure
+
+All commands use the `/octo:` namespace:
+
+| Command Pattern | Example | Purpose |
+|----------------|---------|----------|
+| `/octo:<phase>` | `/octo:discover` | Run a single Double Diamond phase |
+| `/octo:<skill>` | `/octo:debate` | Run a specialized workflow |
+| `/octo:<system>` | `/octo:setup` | System configuration and status |
+
+## What's next?
+
+<CardGroup cols={2}>
+  <Card title="Command Reference" icon="terminal" href="/commands/overview">
+    Explore all 46 commands and their options
+  </Card>
+  <Card title="Installation Guide" icon="gear" href="/installation">
+    Deep dive into provider setup and configuration
+  </Card>
+  <Card title="Personas" icon="users" href="/concepts/personas">
+    Learn about the 33 specialized AI personas
+  </Card>
+  <Card title="Double Diamond" icon="diamond" href="/concepts/double-diamond">
+    Understand the four-phase workflow methodology
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Commands don't appear or aren't recognized">
+    1. Verify installation: `claude plugin list | grep claude-octopus`
+    2. Check that the plugin is enabled
+    3. Fully restart Claude Code (Cmd+Q on macOS, complete exit on Windows/Linux)
+    4. Check debug logs in `~/.claude/debug/*.txt`
+  </Accordion>
+
+  <Accordion title="Setup shows all providers as unavailable">
+    This is normal! Claude is built-in and doesn't require setup. You can use Claude Octopus immediately with all features except multi-AI orchestration.
+
+    To add external providers, see the [Installation guide](/installation#provider-setup).
+  </Accordion>
+
+  <Accordion title="Workflows run but don't produce results">
+    1. Check results directory: `~/.claude-octopus/results/`
+    2. Run diagnostics: `/octo:doctor`
+    3. Check logs: `~/.claude-octopus/logs/`
+  </Accordion>
+
+  <Accordion title="How do I uninstall?">
+    ```bash
+    /plugin uninstall claude-octopus@nyldn-plugins
+    ```
+
+    If you see a scope error, add `--scope project` to match your installation scope.
+
+    This removes all plugin files. Project-specific state in `.octo/` is preserved.
+  </Accordion>
+</AccordionGroup>
+
+<Info>
+**Need more help?** Run `/octo:doctor` for comprehensive environment diagnostics across 9 check categories.
+</Info>

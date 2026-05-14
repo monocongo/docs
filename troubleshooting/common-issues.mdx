@@ -1,0 +1,469 @@
+---
+title: Common issues
+description: Solutions for installation, authentication, and performance issues
+---
+
+This page covers the most common issues users encounter with Claude Octopus and their solutions.
+
+## Installation problems
+
+<Accordion title="Plugin installation fails">
+  **Symptom**: `/plugin install claude-octopus@nyldn-plugins` fails with error
+  
+  **Common causes**:
+  
+  1. **Wrong scope**: Add `--scope project` if you see "scope not found"
+     ```
+     /plugin install claude-octopus@nyldn-plugins --scope project
+     ```
+  
+  2. **Marketplace not added**: Add the marketplace first
+     ```
+     /plugin marketplace add https://github.com/nyldn/claude-octopus.git
+     /plugin install claude-octopus@nyldn-plugins
+     ```
+  
+  3. **Git not installed**: Install git and retry
+     ```bash
+     # macOS
+     brew install git
+     
+     # Ubuntu/Debian
+     sudo apt install git
+     ```
+  
+  4. **Network issues**: Check internet connection and retry
+</Accordion>
+
+<Accordion title="Setup command not found">
+  **Symptom**: `/octo:setup` returns "command not found"
+  
+  **Cause**: Plugin not installed or not activated
+  
+  **Solution**:
+  ```
+  # List installed plugins
+  /plugin list
+  
+  # If not listed, install
+  /plugin install claude-octopus@nyldn-plugins
+  
+  # If listed but not active, activate
+  /plugin activate claude-octopus
+  ```
+</Accordion>
+
+<Accordion title="Permission denied on scripts">
+  **Symptom**: `bash: ./scripts/orchestrate.sh: Permission denied`
+  
+  **Cause**: Scripts not executable
+  
+  **Solution**:
+  ```bash
+  # Fix all scripts
+  cd ~/.claude/plugins/nyldn-plugins/claude-octopus
+  chmod +x scripts/*.sh
+  chmod +x scripts/lib/*.sh
+  chmod +x hooks/*.sh
+  ```
+</Accordion>
+
+<Accordion title="Node.js version incompatible">
+  **Symptom**: MCP server fails with "Node.js version not supported"
+  
+  **Cause**: Requires Node.js ≥18
+  
+  **Solution**:
+  ```bash
+  # Check version
+  node --version
+  
+  # Install Node.js 18+ with nvm
+  nvm install 18
+  nvm use 18
+  
+  # Or with Homebrew (macOS)
+  brew install node@18
+  ```
+</Accordion>
+
+## Provider authentication failures
+
+<Accordion title="Codex CLI not found">
+  **Symptom**: `ERROR: Codex CLI not found`
+  
+  **Cause**: Codex CLI not installed
+  
+  **Solution**:
+  ```bash
+  # Install Codex CLI
+  npm install -g @anthropic/codex-cli
+  
+  # Verify installation
+  which codex
+  
+  # Authenticate
+  codex login  # OAuth (recommended)
+  # OR
+  export OPENAI_API_KEY=sk-...  # API key
+  ```
+</Accordion>
+
+<Accordion title="Gemini CLI not found">
+  **Symptom**: `ERROR: Gemini CLI not found`
+  
+  **Cause**: Gemini CLI not installed
+  
+  **Solution**:
+  ```bash
+  # Install Gemini CLI
+  npm install -g @google/gemini-cli
+  
+  # Verify installation
+  which gemini
+  
+  # Authenticate
+  gemini login  # OAuth (recommended)
+  # OR
+  export GEMINI_API_KEY=...  # API key
+  ```
+</Accordion>
+
+<Accordion title="API key not found">
+  **Symptom**: `ERROR: OPENAI_API_KEY not set` or `ERROR: GEMINI_API_KEY not set`
+  
+  **Cause**: Environment variable not configured
+  
+  **Solution**:
+  ```bash
+  # Temporary (current session)
+  export OPENAI_API_KEY=sk-...
+  export GEMINI_API_KEY=...
+  
+  # Permanent (add to shell profile)
+  echo 'export OPENAI_API_KEY=sk-...' >> ~/.zshrc
+  echo 'export GEMINI_API_KEY=...' >> ~/.zshrc
+  source ~/.zshrc
+  
+  # Verify
+  echo $OPENAI_API_KEY
+  ```
+  
+  <Warning>
+    Prefer OAuth authentication (`codex login`, `gemini login`) over API keys for better security.
+  </Warning>
+</Accordion>
+
+<Accordion title="OAuth authentication expired">
+  **Symptom**: `ERROR: Authentication expired`
+  
+  **Cause**: OAuth token expired
+  
+  **Solution**:
+  ```bash
+  # Re-authenticate
+  codex login
+  gemini login
+  
+  # Verify
+  codex auth status
+  gemini auth status
+  ```
+</Accordion>
+
+<Accordion title="Wrong API key permissions">
+  **Symptom**: `ERROR: Insufficient permissions`
+  
+  **Cause**: API key lacks required scopes
+  
+  **Solution**:
+  - **OpenAI**: Ensure key has "Model capabilities" enabled
+  - **Google AI**: Ensure key has "Gemini API" enabled
+  - Regenerate key with correct permissions in provider console
+</Accordion>
+
+## Command not found errors
+
+<Accordion title="/octo:* commands not recognized">
+  **Symptom**: Claude Code doesn't recognize `/octo:embrace`, `/octo:review`, etc.
+  
+  **Cause**: Plugin not active or skills not loaded
+  
+  **Solution**:
+  ```
+  # Check plugin status
+  /plugin list
+  
+  # Reload plugin
+  /plugin reload claude-octopus
+  
+  # Re-run setup
+  /octo:setup
+  ```
+</Accordion>
+
+<Accordion title="Natural language routing fails">
+  **Symptom**: `octo research topic` doesn't route to `/octo:discover`
+  
+  **Cause**: Smart router not recognizing intent
+  
+  **Solution**:
+  - Use explicit command: `/octo:discover topic`
+  - Add more context: `octo research OAuth patterns in depth`
+  - Check router config: `cat ~/.claude-octopus/config/router.json`
+</Accordion>
+
+<Accordion title="Persona not found">
+  **Symptom**: `ERROR: Persona 'typescript-pro' not found`
+  
+  **Cause**: Persona file missing or persona pack not loaded
+  
+  **Solution**:
+  ```bash
+  # Check built-in personas
+  ls ~/.claude/plugins/nyldn-plugins/claude-octopus/agents/personas/
+  
+  # Check active persona packs
+  cat .octo/active-packs.json
+  
+  # Reload persona packs
+  export OCTOPUS_PERSONA_PACKS=auto
+  ./scripts/orchestrate.sh setup
+  ```
+</Accordion>
+
+## Performance issues
+
+<Accordion title="Workflow is very slow">
+  **Symptom**: `/octo:embrace` takes 10+ minutes
+  
+  **Causes and solutions**:
+  
+  1. **Multiple providers active**: Disable unused providers
+     ```bash
+     export OCTOPUS_DISABLE_CODEX=true
+     export OCTOPUS_DISABLE_GEMINI=true
+     ```
+  
+  2. **Large context**: Reduce prompt size or use `/octo:quick` for fast iteration
+  
+  3. **Network latency**: Check provider status
+     ```
+     /octo:status
+     ```
+  
+  4. **Opus model overuse**: Switch personas to Sonnet or Haiku
+     ```yaml
+     # In persona frontmatter
+     model: sonnet  # Instead of opus
+     ```
+</Accordion>
+
+<Accordion title="High token usage">
+  **Symptom**: Token budget exceeded quickly
+  
+  **Causes**:
+  
+  1. **Too many Opus personas**: Use `inherit` or Sonnet models
+  2. **Parallel multi-AI execution**: Disable parallel mode
+     ```bash
+     export OCTOPUS_PARALLEL_MODE=false
+     ```
+  3. **Large codebase context**: Use `/octo:quick` or `/octo:define` instead of full embrace
+  
+  **Monitor usage**:
+  ```bash
+  # Check current usage
+  cat ~/.claude-octopus/session.json | jq '.tokens_used'
+  
+  # Set budget
+  export OCTOPUS_TOKEN_BUDGET=50000
+  ```
+</Accordion>
+
+<Accordion title="Agent timeouts">
+  **Symptom**: `ERROR: Agent timed out after 300s`
+  
+  **Cause**: Complex prompt or slow provider
+  
+  **Solution**:
+  ```bash
+  # Increase timeout
+  export OCTOPUS_AGENT_TIMEOUT=600  # 10 minutes
+  
+  # Or simplify prompt
+  ./scripts/orchestrate.sh develop "implement simple auth"
+  
+  # Check provider latency
+  time codex "test prompt"
+  time gemini "test prompt"
+  ```
+</Accordion>
+
+<Accordion title="Memory usage growing">
+  **Symptom**: System runs out of memory during workflows
+  
+  **Cause**: Large result files or logs accumulating
+  
+  **Solution**:
+  ```bash
+  # Clean old results
+  find ~/.claude-octopus/results -mtime +7 -delete
+  
+  # Clean old logs
+  find ~/.claude-octopus/logs -mtime +7 -delete
+  
+  # Disable memory persistence
+  export OCTOPUS_MEMORY_MODE=local  # Instead of project or global
+  ```
+</Accordion>
+
+<Accordion title="Disk space issues">
+  **Symptom**: `ERROR: No space left on device`
+  
+  **Cause**: Logs and results filling disk
+  
+  **Solution**:
+  ```bash
+  # Check disk usage
+  du -sh ~/.claude-octopus/*
+  
+  # Clean all results and logs
+  rm -rf ~/.claude-octopus/results/*
+  rm -rf ~/.claude-octopus/logs/*
+  
+  # Set up log rotation (macOS/Linux)
+  cat > ~/.claude-octopus/logrotate.conf <<EOF
+  ~/.claude-octopus/logs/*.log {
+    rotate 7
+    daily
+    compress
+    missingok
+  }
+  EOF
+  ```
+</Accordion>
+
+## Quality gate failures
+
+<Accordion title="Quality score too low">
+  **Symptom**: `Quality gate FAILED: score 65/75`
+  
+  **Cause**: Output doesn't meet quality threshold
+  
+  **Solution**:
+  ```bash
+  # Review validation report
+  cat ~/.claude-octopus/results/tangle-validation-*.md
+  
+  # Lower threshold temporarily
+  export OCTOPUS_QUALITY_THRESHOLD=60
+  
+  # Or improve output and retry
+  ./scripts/orchestrate.sh tangle "implement with tests"
+  ```
+</Accordion>
+
+<Accordion title="Consensus not reached">
+  **Symptom**: `Consensus gate FAILED: 60% agreement (need 75%)`
+  
+  **Cause**: Providers disagree on approach
+  
+  **Solution**:
+  ```bash
+  # Review divergent opinions
+  grep -A 10 "Divergence:" ~/.claude-octopus/results/grasp-synthesis-*.md
+  
+  # Lower consensus threshold
+  export OCTOPUS_CONSENSUS_THRESHOLD=60
+  
+  # Or provide more context
+  ./scripts/orchestrate.sh define "requirements: must use OAuth 2.0"
+  ```
+</Accordion>
+
+<Accordion title="Security gate blocks">
+  **Symptom**: `Security gate FAILED: Insufficient OWASP coverage`
+  
+  **Cause**: Security audit didn't find enough vulnerability categories
+  
+  **Solution**:
+  ```bash
+  # This is working as intended — security-auditor needs more thorough analysis
+  # Retry with more context
+  ./scripts/orchestrate.sh squeeze "audit auth module for OWASP Top 10"
+  
+  # Or disable gate temporarily (not recommended)
+  export OCTOPUS_DISABLE_SECURITY_GATE=true
+  ```
+</Accordion>
+
+## Uninstallation issues
+
+<Accordion title="Plugin won't uninstall">
+  **Symptom**: `/plugin uninstall claude-octopus@nyldn-plugins` fails
+  
+  **Solution**:
+  ```
+  # Try with scope
+  /plugin uninstall claude-octopus@nyldn-plugins --scope project
+  
+  # Force uninstall
+  /plugin uninstall claude-octopus@nyldn-plugins --force
+  
+  # Manual cleanup
+  rm -rf ~/.claude/plugins/nyldn-plugins/claude-octopus
+  ```
+</Accordion>
+
+<Accordion title="Residual config remains">
+  **Symptom**: Claude Octopus still active after uninstall
+  
+  **Cause**: Workspace config not cleaned
+  
+  **Solution**:
+  ```bash
+  # Remove workspace config
+  rm -rf ~/.claude-octopus
+  rm -rf .octo/
+  
+  # Remove env vars from shell profile
+  sed -i '' '/OCTOPUS_/d' ~/.zshrc
+  source ~/.zshrc
+  ```
+</Accordion>
+
+## Getting more help
+
+If these solutions don't resolve your issue:
+
+1. **Run diagnostics**:
+   ```
+   /octo:doctor
+   ```
+
+2. **Enable debug mode**:
+   ```bash
+   export OCTOPUS_DEBUG=true
+   ./scripts/orchestrate.sh <your-command>
+   ```
+
+3. **Check logs**:
+   ```bash
+   tail -100 ~/.claude-octopus/logs/orchestrate.log
+   ```
+
+4. **Report issue** with:
+   - Debug output
+   - Doctor output  
+   - OS and Node.js version
+   - Steps to reproduce
+   
+   Submit to: https://github.com/nyldn/claude-octopus/issues
+
+## Related documentation
+
+- [Debugging guide](/troubleshooting/debugging) — Debug mode and logs
+- [Installation](/installation) — Installation steps
+- [Configuration](/guides/configuration) — Environment variables
+- [Workflows](/concepts/workflows) — Understanding workflow phases

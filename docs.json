@@ -1,0 +1,97 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "Claude Octopus",
+  "theme": "aspen",
+  "colors": {
+    "primary": "#94cb04",
+    "light": "#545454",
+    "dark": "#6a9203"
+  },
+  "favicon": "https://media.brand.dev/288cc7c4-5cef-4376-950b-bdf0083eedae.png",
+  "logo": {
+    "light": "https://media.brand.dev/288cc7c4-5cef-4376-950b-bdf0083eedae.png",
+    "dark": "https://media.brand.dev/288cc7c4-5cef-4376-950b-bdf0083eedae.png"
+  },
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/nyldn/claude-octopus"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/nyldn/claude-octopus"
+    }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/architecture",
+              "concepts/double-diamond",
+              "concepts/multi-ai-orchestration",
+              "concepts/personas",
+              "concepts/workflows"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/commands",
+              "guides/workflows",
+              "guides/providers",
+              "guides/configuration"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Commands",
+        "groups": [
+          {
+            "group": "Command Reference",
+            "pages": [
+              "commands/overview",
+              "commands/workflow-commands",
+              "commands/system-commands",
+              "commands/skill-commands"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Advanced",
+        "groups": [
+          {
+            "group": "Extension & Integration",
+            "pages": [
+              "advanced/personas",
+              "advanced/hooks",
+              "advanced/openclaw",
+              "advanced/mcp-server"
+            ]
+          },
+          {
+            "group": "Troubleshooting",
+            "pages": [
+              "troubleshooting/debugging",
+              "troubleshooting/common-issues"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

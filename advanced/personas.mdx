@@ -1,0 +1,298 @@
+---
+title: Creating custom personas
+description: Build specialized agents with custom personas and persona packs for your workflow
+---
+
+Claude Octopus ships with 33 built-in personas covering software engineering, research, strategy, and specialized development. You can create custom personas or distribute them as persona packs to tailor agents to your team's specific needs.
+
+## Persona anatomy
+
+Each persona is defined in a markdown file with YAML frontmatter. Here's the structure:
+
+```markdown
+---
+name: typescript-pro
+description: Master TypeScript with advanced types, generics, and strict type safety.
+model: opus
+memory: local
+when_to_use: |
+  - Advanced TypeScript type definitions
+  - Generic types and utility type creation
+avoid_if: |
+  - Python work (use python-pro)
+  - Frontend component logic (use frontend-developer)
+examples:
+  - prompt: "Create type-safe API client"
+    outcome: "Generic request/response types, error handling"
+---
+
+You are a TypeScript expert specializing in advanced typing...
+
+## Focus Areas
+- Advanced type systems (generics, conditional types, mapped types)
+- Strict TypeScript configuration
+
+## Approach
+1. Leverage strict type checking
+2. Use generics and utility types
+```
+
+### Frontmatter fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | Yes | Unique identifier (kebab-case) |
+| `description` | Yes | One-line summary of the persona's expertise |
+| `model` | Yes | Model selection: `opus`, `sonnet`, `haiku`, or `inherit` |
+| `memory` | No | Memory mode: `local`, `project`, or `global` |
+| `when_to_use` | No | Situations where this persona excels |
+| `avoid_if` | No | When NOT to use this persona |
+| `examples` | No | Example prompts and expected outcomes |
+| `tools` | No | Allowed tools (defaults to all) |
+| `hooks` | No | Custom hook configurations |
+
+### Model selection
+
+The `model` field determines which Claude model the persona uses:
+
+- **`opus`** — Most capable, use for critical decisions (code review, architecture, security audits)
+- **`sonnet`** — Balanced performance, use for focused tasks (debugging, testing, docs)
+- **`haiku`** — Fastest and cheapest, use for simple tasks (diagrams, simple scripts)
+- **`inherit`** — Auto-selects based on task complexity (recommended for general-purpose personas)
+
+<Warning>
+  Opus costs 6-8x more than Sonnet. Use sparingly for high-value tasks.
+</Warning>
+
+## Creating new personas
+
+### Step 1: Define the persona file
+
+Create a new markdown file in `agents/personas/`:
+
+```bash
+# In your Claude Octopus installation
+touch agents/personas/rust-expert.md
+```
+
+### Step 2: Write the frontmatter
+
+```markdown
+---
+name: rust-expert
+description: Rust expert specializing in ownership, lifetimes, and async programming
+model: opus
+memory: project
+when_to_use: |
+  - Rust backend services
+  - Performance-critical code
+  - Systems programming
+avoid_if: |
+  - Web frontend (use frontend-developer)
+  - Python projects (use python-pro)
+examples:
+  - prompt: "Build async HTTP server with Tokio"
+    outcome: "Production-ready Axum server with proper error handling"
+---
+```
+
+### Step 3: Write the prompt
+
+The markdown body becomes the system prompt:
+
+```markdown
+You are a Rust expert specializing in ownership, borrowing, and async programming.
+
+## Purpose
+Master of Rust's ownership model, lifetimes, and zero-cost abstractions. Expert in async Rust (Tokio, async-std), memory safety, and performance optimization.
+
+## Capabilities
+- Ownership and borrowing patterns
+- Lifetime annotations and inference
+- Async/await with Tokio runtime
+- Error handling with Result and Option
+- Trait systems and generics
+- Unsafe Rust when necessary
+
+## Approach
+1. Design with ownership in mind
+2. Leverage the type system for safety
+3. Use async/await for I/O-bound tasks
+4. Profile before optimizing
+
+## Output
+- Idiomatic Rust with proper error handling
+- Comprehensive unit tests
+- Documentation comments (///) for public APIs
+```
+
+### Step 4: Test the persona
+
+```bash
+# Test by invoking directly
+./scripts/orchestrate.sh --persona=rust-expert probe "research async Rust patterns"
+```
+
+## Persona packs and libraries
+
+Persona packs allow you to distribute collections of personas without modifying the core plugin.
+
+### Directory structure
+
+```
+~/.claude-octopus/personas/my-team-pack/
+├── pack.yaml              # Pack manifest
+├── devops-specialist.md   # Custom personas
+├── qa-engineer.md
+└── README.md             # Documentation
+```
+
+### Pack manifest (pack.yaml)
+
+```yaml
+name: my-team-pack
+version: 1.0.0
+author: Your Team
+description: Custom personas for our development workflow
+
+personas:
+  - file: devops-specialist.md
+    extends: deployment-engineer
+    capabilities:
+      - Kubernetes expert
+      - Terraform IaC
+  
+  - file: qa-engineer.md
+    replaces: test-automator
+    capabilities:
+      - E2E testing with Playwright
+      - Load testing with k6
+```
+
+### Pack search paths
+
+Claud Octopus discovers persona packs from:
+
+1. **Project-local**: `.octopus/personas/` (highest priority)
+2. **User-global**: `~/.claude-octopus/personas/`
+3. **Custom paths**: `OCTOPUS_PERSONA_PACKS=/path/to/packs:/another/path`
+
+### Loading packs
+
+Packs are auto-loaded by default:
+
+```bash
+# Disable auto-loading
+export OCTOPUS_PERSONA_PACKS=off
+
+# Manual loading
+/octo:setup --load-pack ~/.claude-octopus/personas/my-pack
+```
+
+### Pack modes
+
+- **`extends`** — Adds to existing persona (combines prompts)
+- **`replaces`** — Completely replaces built-in persona
+
+<Warning>
+  Use `replaces` carefully — it completely overrides the built-in persona.
+</Warning>
+
+## Model selection strategies
+
+### When to use Opus
+
+```yaml
+model: opus
+```
+
+Use for:
+- Code review (`code-reviewer`)
+- Security audits (`security-auditor`) 
+- Architecture decisions (`database-architect`, `cloud-architect`)
+- Complex type systems (`typescript-pro`, `python-pro`)
+- TDD orchestration (`tdd-orchestrator`)
+
+### When to use Sonnet
+
+```yaml
+model: sonnet
+```
+
+Use for:
+- Debugging (`debugger`)
+- Test generation (`test-automator`)
+- Documentation writing (`docs-architect`)
+- Business analysis (`business-analyst`)
+- Marketing strategy (`marketing-strategist`)
+
+### When to use Haiku
+
+```yaml
+model: haiku
+```
+
+Use for:
+- Diagram generation (`mermaid-expert`)
+- Simple deployments (`deployment-engineer`)
+- Basic scripting
+
+### When to use Inherit
+
+```yaml
+model: inherit
+```
+
+Use for:
+- General-purpose personas that handle varying complexity
+- Backend architecture (`backend-architect`)
+- Frontend development (`frontend-developer`) 
+- Performance engineering (`performance-engineer`)
+
+The `inherit` mode auto-selects the model based on:
+- Task complexity (detected from prompt)
+- Current workflow phase
+- Available context size
+
+## Best practices
+
+### Persona design
+
+1. **Single responsibility** — Each persona should have one clear expertise area
+2. **Clear boundaries** — Use `avoid_if` to prevent overlap with other personas
+3. **Specific examples** — Include 2-3 concrete prompt/outcome pairs
+4. **Behavioral traits** — Describe HOW the persona approaches problems, not just WHAT it knows
+
+### Prompt engineering
+
+```markdown
+## Purpose
+[One paragraph describing the persona's core expertise]
+
+## Capabilities
+[Structured list of what this persona can do]
+
+## Approach  
+[Step-by-step methodology this persona follows]
+
+## Output
+[What deliverables this persona produces]
+```
+
+### Memory configuration
+
+- **`local`** — Session-only memory (default, most private)
+- **`project`** — Shared across project conversations
+- **`global`** — Shared across all projects (use sparingly)
+
+## Source code reference
+
+- **Persona files**: `agents/personas/*.md` in source code:~/workspace/source/agents/personas/
+- **Persona loader**: `scripts/lib/personas.sh` in source code:~/workspace/source/scripts/lib/personas.sh
+- **Built-in personas**: See [agents documentation](/concepts/personas) for the full catalog
+
+## Related documentation
+
+- [Agent catalog](/concepts/personas) — All 33 built-in personas
+- [Hooks system](/advanced/hooks) — Custom lifecycle hooks for personas
+- [Configuration](/guides/configuration) — Environment variables and settings

@@ -1,0 +1,111 @@
+{
+  "projectType": "framework",
+  "projectName": "Claude Octopus",
+  "projectDescription": "Multi-AI orchestration framework for Claude Code that coordinates Codex, Gemini, and Claude with structured workflows, specialized personas, and quality gates.",
+  "theme": "aspen",
+  "primaryColor": "#94cb04",
+  "lightColor": "#545454",
+  "darkColor": "#6a9203",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/architecture",
+              "concepts/double-diamond",
+              "concepts/multi-ai-orchestration",
+              "concepts/personas",
+              "concepts/workflows"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/commands",
+              "guides/workflows",
+              "guides/providers",
+              "guides/configuration"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Commands",
+        "groups": [
+          {
+            "group": "Command Reference",
+            "pages": [
+              "commands/overview",
+              "commands/workflow-commands",
+              "commands/system-commands",
+              "commands/skill-commands"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Advanced",
+        "groups": [
+          {
+            "group": "Extension & Integration",
+            "pages": [
+              "advanced/personas",
+              "advanced/hooks",
+              "advanced/openclaw",
+              "advanced/mcp-server"
+            ]
+          },
+          {
+            "group": "Troubleshooting",
+            "pages": [
+              "troubleshooting/debugging",
+              "troubleshooting/common-issues"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Multi-AI orchestration (Claude, Codex, Gemini)",
+    "Double Diamond methodology with 4 structured phases",
+    "33+ specialized agent personas",
+    "46+ slash commands",
+    "Adversarial review with 75% consensus gate",
+    "Dark Factory autonomous pipeline",
+    "OpenClaw MCP server compatibility",
+    "Visual cost transparency indicators"
+  ],
+  "publicApiSurface": [
+    "/octo:embrace - Full 4-phase workflow",
+    "/octo:factory - Autonomous spec-to-software pipeline",
+    "/octo:debate - Structured AI debate",
+    "/octo:research - Deep multi-source research",
+    "/octo:review - Multi-perspective code review",
+    "/octo:tdd - Test-driven development",
+    "/octo:security - OWASP security audit",
+    "/octo:prd - AI-optimized PRD generation",
+    "/octo:discover - Research phase",
+    "/octo:define - Requirements phase",
+    "/octo:develop - Implementation phase",
+    "/octo:deliver - Validation phase",
+    "/octo:setup - Provider configuration",
+    "/octo:doctor - Environment diagnostics",
+    "/octo:claw - OpenClaw admin",
+    "orchestrate.sh - Core orchestration script",
+    "MCP Server - 11 exposed tools",
+    "Persona system - 33 specialized agents",
+    "Hook system - Extensible lifecycle hooks"
+  ]
+}

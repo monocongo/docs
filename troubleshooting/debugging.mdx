@@ -1,0 +1,470 @@
+---
+title: Debugging guide
+description: Debug Claude Octopus workflows with debug mode, logs, and diagnostics
+---
+
+When Claude Octopus workflows fail or behave unexpectedly, debug mode provides detailed logging to help you diagnose issues.
+
+## Debug mode
+
+Enable debug logging to see detailed execution traces:
+
+### Option 1: Environment variable
+
+```bash
+export OCTOPUS_DEBUG=true
+./scripts/orchestrate.sh embrace "build user auth"
+```
+
+### Option 2: Command-line flag
+
+```bash
+./scripts/orchestrate.sh --debug embrace "build user auth"
+```
+
+### Option 3: Inline
+
+```bash
+OCTOPUS_DEBUG=true ./scripts/orchestrate.sh embrace "build user auth"
+```
+
+### Option 4: From Claude Code
+
+```
+/octo:setup --enable-debug
+```
+
+This persists the debug setting across sessions.
+
+## What debug mode shows
+
+Debug mode provides detailed logging including:
+
+### Startup information
+
+```
+[DEBUG] ═══ Orchestrate.sh starting ═══
+[DEBUG] COMMAND=embrace
+[DEBUG] OCTOPUS_DEBUG=true
+[DEBUG] WORKSPACE_DIR=/Users/you/.claude-octopus
+[DEBUG] PROJECT_ROOT=/Users/you/git/your-project
+[DEBUG] Arguments: embrace "build user auth"
+```
+
+### Provider detection
+
+```
+[DEBUG] ═══ Detecting AI providers ═══
+[DEBUG] Checking for Codex CLI...
+[DEBUG] ✓ Codex CLI found with auth: oauth
+[DEBUG] Checking for Gemini CLI...
+[DEBUG] ✓ Gemini CLI found with auth: oauth
+[DEBUG] Checking for Claude CLI...
+[DEBUG] ✓ Claude CLI found
+[DEBUG] Detected providers: codex:oauth gemini:oauth claude:oauth
+```
+
+### Agent execution
+
+```
+[DEBUG] ═══ Executing agent: backend-architect ═══
+[DEBUG] Agent type: opus
+[DEBUG] Role: architect
+[DEBUG] Phase: grasp
+[DEBUG] Timeout: 300s
+[DEBUG] Command: claude --persona=backend-architect "Design user auth API"
+[DEBUG] Working directory: /Users/you/git/your-project
+```
+
+### Execution results
+
+```
+[DEBUG] Agent completed in 45.2s
+[DEBUG] Exit code: 0
+[DEBUG] Output length: 15,243 characters
+[DEBUG] Tokens used: ~12,000
+[DEBUG] Result file: ~/.claude-octopus/results/probe-synthesis-20260304.md
+```
+
+### Workflow progress
+
+```
+[DEBUG] ═══ Phase transition: probe → grasp ═══
+[DEBUG] Probe phase complete
+[DEBUG] Quality gate: PASSED (score: 87/75)
+[DEBUG] Starting grasp phase...
+[DEBUG] Task group ID: tg-abc123
+```
+
+### Error context
+
+```
+[ERROR] Agent execution failed
+[DEBUG] Command: gemini "Research OAuth patterns"
+[DEBUG] Exit code: 1
+[DEBUG] Stderr: Error: GEMINI_API_KEY not found
+[DEBUG] Provider: gemini
+[DEBUG] Fallback strategy: retry with claude
+```
+
+## Log locations
+
+Claud Octopus writes logs to multiple locations:
+
+### Orchestration logs
+
+**Location**: `~/.claude-octopus/logs/orchestrate.log`
+
+**Contains**:
+- Command invocations
+- Provider routing decisions  
+- Quality gate results
+- Phase transitions
+- Error stack traces
+
+**View recent logs**:
+```bash
+tail -f ~/.claude-octopus/logs/orchestrate.log
+```
+
+### Agent logs
+
+**Location**: `~/.claude-octopus/logs/agents/`
+
+**Structure**:
+```
+logs/agents/
+├── codex-20260304-143022.log
+├── gemini-20260304-143145.log
+└── claude-20260304-143301.log
+```
+
+**Contains**:
+- Full agent output (stdout + stderr)
+- Tool executions
+- Memory operations
+- Token usage
+
+**View latest agent log**:
+```bash
+ls -t ~/.claude-octopus/logs/agents/ | head -1 | xargs -I {} cat ~/.claude-octopus/logs/agents/{}
+```
+
+### Result files
+
+**Location**: `~/.claude-octopus/results/`
+
+**Structure**:
+```
+results/
+├── probe-synthesis-20260304.md
+├── grasp-synthesis-20260304.md
+├── tangle-synthesis-20260304.md
+├── ink-synthesis-20260304.md
+└── tangle-validation-20260304.md
+```
+
+**Contains**:
+- Final output from each phase
+- Quality scores
+- Multi-provider consensus results
+- Validation reports
+
+### MCP server logs
+
+**Location**: `~/.claude/logs/mcp-server.log` (Claude Code) or `~/.openclaw/logs/mcp-server.log` (OpenClaw)
+
+**Contains**:
+- MCP tool invocations
+- Parameter validation errors
+- orchestrate.sh execution traces
+
+## Common errors and solutions
+
+<Accordion title="Provider not found">
+  **Error**: `ERROR: Codex CLI not found`
+  
+  **Cause**: AI provider CLI is not installed or not in PATH
+  
+  **Solution**:
+  ```bash
+  # Check if provider is installed
+  which codex
+  which gemini
+  
+  # Install missing provider
+  npm install -g @anthropic/codex-cli
+  npm install -g @google/gemini-cli
+  
+  # Or authenticate with OAuth
+  codex login
+  gemini login
+  ```
+</Accordion>
+
+<Accordion title="API key not found">
+  **Error**: `ERROR: OPENAI_API_KEY not set`
+  
+  **Cause**: Environment variable not configured
+  
+  **Solution**:
+  ```bash
+  # Set API key
+  export OPENAI_API_KEY=sk-...
+  export GEMINI_API_KEY=...
+  
+  # Or use OAuth (no key needed)
+  codex login
+  gemini login
+  
+  # Persist in shell profile
+  echo 'export OPENAI_API_KEY=sk-...' >> ~/.zshrc
+  ```
+</Accordion>
+
+<Accordion title="Quality gate failed">
+  **Error**: `Quality gate FAILED: score 65/75`
+  
+  **Cause**: Tangle phase output didn't meet quality threshold
+  
+  **Solution**:
+  ```bash
+  # Review validation report
+  cat ~/.claude-octopus/results/tangle-validation-*.md
+  
+  # Lower threshold temporarily
+  export OCTOPUS_QUALITY_THRESHOLD=60
+  
+  # Or fix issues and retry
+  ./scripts/orchestrate.sh tangle "implement user auth"
+  ```
+</Accordion>
+
+<Accordion title="Agent timeout">
+  **Error**: `ERROR: Agent timed out after 300s`
+  
+  **Cause**: Agent execution exceeded timeout
+  
+  **Solution**:
+  ```bash
+  # Increase timeout
+  export OCTOPUS_AGENT_TIMEOUT=600  # 10 minutes
+  
+  # Or simplify the prompt
+  ./scripts/orchestrate.sh embrace "build simple auth"
+  ```
+</Accordion>
+
+<Accordion title="Permission denied">
+  **Error**: `bash: ./scripts/orchestrate.sh: Permission denied`
+  
+  **Cause**: Script not executable
+  
+  **Solution**:
+  ```bash
+  chmod +x ./scripts/orchestrate.sh
+  chmod +x ./hooks/*.sh
+  ```
+</Accordion>
+
+<Accordion title="Persona not found">
+  **Error**: `ERROR: Persona 'rust-expert' not found`
+  
+  **Cause**: Custom persona file doesn't exist or has wrong name
+  
+  **Solution**:
+  ```bash
+  # Check available personas
+  ls agents/personas/
+  
+  # Verify persona filename matches name in frontmatter
+  grep '^name:' agents/personas/rust-expert.md
+  
+  # Check persona pack loading
+  cat .octo/active-packs.json
+  ```
+</Accordion>
+
+## Using /octo:doctor for diagnostics
+
+The `/octo:doctor` command runs 9 health checks:
+
+```
+/octo:doctor
+```
+
+### Health check categories
+
+1. **Provider availability** — Checks if Codex, Gemini, Claude CLIs are installed
+2. **Authentication** — Validates API keys and OAuth tokens
+3. **File permissions** — Checks if scripts are executable
+4. **Directory structure** — Validates workspace directories exist
+5. **Configuration** — Checks environment variables
+6. **Memory** — Validates memory files are readable
+7. **Hooks** — Tests hook execution
+8. **MCP server** — Checks if MCP server is running
+9. **Disk space** — Ensures sufficient space for logs/results
+
+### Example output
+
+```
+🐙 Claude Octopus Diagnostics
+
+✓ Providers
+  ✓ Codex CLI installed (oauth)
+  ✓ Gemini CLI installed (oauth)
+  ✓ Claude CLI built-in
+
+✓ Authentication  
+  ✓ Codex: authenticated via OAuth
+  ✓ Gemini: authenticated via OAuth
+  ✓ Claude: built-in (no auth needed)
+
+✓ File Permissions
+  ✓ orchestrate.sh is executable
+  ✓ All hooks are executable
+
+✓ Configuration
+  ✓ WORKSPACE_DIR set: ~/.claude-octopus
+  ✓ PROJECT_ROOT detected: ~/git/your-project
+  ✗ OCTOPUS_QUALITY_THRESHOLD not set (using default: 75)
+
+✓ MCP Server
+  ✓ MCP server responding
+  ✓ 11 tools registered
+
+✓ Disk Space
+  ✓ Available: 125 GB
+
+Overall: 8/9 checks passed
+```
+
+### Fixing doctor issues
+
+```bash
+# Install missing providers
+npm install -g @anthropic/codex-cli
+
+# Fix permissions
+chmod +x ./scripts/orchestrate.sh
+chmod +x ./hooks/*.sh
+
+# Create missing directories
+mkdir -p ~/.claude-octopus/{logs,results,plans,metrics}
+
+# Set required env vars
+export OCTOPUS_QUALITY_THRESHOLD=75
+```
+
+## Debugging workflow phases
+
+### Probe phase issues
+
+**Symptom**: Research incomplete or low-quality
+
+**Debug**:
+```bash
+OCTOPUS_DEBUG=true ./scripts/orchestrate.sh probe "research topic"
+
+# Check provider responses
+ls -t ~/.claude-octopus/results/probe-*.md | head -3
+```
+
+**Common causes**:
+- Provider timeout
+- API rate limiting
+- Insufficient context in prompt
+
+### Grasp phase issues
+
+**Symptom**: Consensus not reached
+
+**Debug**:
+```bash
+# Check consensus scoring
+grep -A 5 "Consensus:" ~/.claude-octopus/results/grasp-synthesis-*.md
+```
+
+**Common causes**:
+- Providers disagree (working as intended)
+- Threshold too high (default 75%)
+
+### Tangle phase issues
+
+**Symptom**: Quality gate fails
+
+**Debug**:
+```bash
+# Review validation report
+cat ~/.claude-octopus/results/tangle-validation-*.md
+
+# Check quality score
+grep "Quality Score:" ~/.claude-octopus/results/tangle-validation-*.md
+```
+
+**Common causes**:
+- Code quality issues
+- Missing tests
+- Security vulnerabilities
+
+### Ink phase issues
+
+**Symptom**: Adversarial review blocks delivery
+
+**Debug**:
+```bash
+# Check review results
+cat ~/.claude-octopus/results/ink-synthesis-*.md
+
+# See specific objections
+grep -A 10 "Objections:" ~/.claude-octopus/results/ink-synthesis-*.md
+```
+
+## Best practices
+
+1. **Always enable debug mode when troubleshooting** — The overhead is minimal
+2. **Check logs in order**: orchestrate.log → agent logs → result files
+3. **Use `/octo:doctor` first** — Catches most common configuration issues
+4. **Simplify prompts** — If a complex prompt fails, try breaking it into phases
+5. **Check provider status** — API outages happen; verify with `/octo:status`
+
+## Reporting issues
+
+When reporting bugs, include:
+
+1. **Debug log output**:
+   ```bash
+   OCTOPUS_DEBUG=true ./scripts/orchestrate.sh <command> 2>&1 | tee debug.log
+   ```
+
+2. **Doctor output**:
+   ```
+   /octo:doctor
+   ```
+
+3. **Environment info**:
+   ```bash
+   echo "OS: $(uname -s)"
+   echo "Shell: $SHELL"
+   echo "Node: $(node --version)"
+   echo "Claude Code: $(claude --version)"
+   ```
+
+4. **Relevant result files**:
+   ```bash
+   tar -czf octopus-debug.tar.gz ~/.claude-octopus/logs ~/.claude-octopus/results
+   ```
+
+Submit to: https://github.com/nyldn/claude-octopus/issues
+
+## Source code reference
+
+- **Debug mode implementation**: `scripts/orchestrate.sh` (search for `OCTOPUS_DEBUG`)
+- **Log functions**: `scripts/lib/logging.sh`
+- **Doctor command**: `.claude/skills/skill-doctor.md`
+
+## Related documentation
+
+- [Common issues](/troubleshooting/common-issues) — Known issues and workarounds
+- [Configuration](/guides/configuration) — Environment variables
+- [Hooks system](/advanced/hooks) — Debugging custom hooks

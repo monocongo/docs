@@ -1,0 +1,665 @@
+---
+title: Advanced configuration
+description: Configure Claude Octopus with environment variables, settings, autonomy modes, and custom hooks for tailored multi-AI workflows
+---
+
+# Advanced configuration
+
+Claude Octopus provides extensive configuration options for tailoring workflows, controlling costs, and extending functionality.
+
+## Environment variables
+
+Environment variables control provider behavior, timeouts, and feature flags.
+
+### Provider configuration
+
+<CodeGroup>
+```bash Authentication
+# API key authentication (per-token billing)
+export OPENAI_API_KEY="sk-..."              # Codex API key
+export GEMINI_API_KEY="..."                 # Gemini API key
+export GOOGLE_API_KEY="..."                 # Alternative to GEMINI_API_KEY
+export PERPLEXITY_API_KEY="..."             # Perplexity Sonar API key
+```
+
+```bash Provider control
+# Enable/disable providers
+export OCTOPUS_DISABLE_CODEX=true           # Disable Codex temporarily
+export OCTOPUS_DISABLE_GEMINI=true          # Disable Gemini temporarily
+export OCTOPUS_DISABLE_PERPLEXITY=true      # Disable Perplexity temporarily
+
+# Force single-provider mode
+export OCTOPUS_SINGLE_PROVIDER=true         # Use Claude only
+```
+
+```bash Model selection
+# Override default models
+export OCTOPUS_CODEX_MODEL="gpt-5.3-codex" # Codex model
+export OCTOPUS_GEMINI_MODEL="gemini-pro"    # Gemini model
+export OCTOPUS_OPUS_MODE="standard"         # Claude Opus mode (standard/fast)
+
+# Claude Opus Fast mode (6x cost, lower latency)
+export OCTOPUS_OPUS_MODE="fast"             # Enable fast mode globally
+```
+
+```bash Timeouts
+# Provider timeout configuration (seconds)
+export CODEX_TIMEOUT=120                     # Codex query timeout
+export GEMINI_TIMEOUT=120                    # Gemini query timeout
+export CLAUDE_TIMEOUT=180                    # Claude query timeout
+
+# Workflow timeouts
+export OCTOPUS_PHASE_TIMEOUT=300            # Phase execution timeout
+export OCTOPUS_EMBRACE_TIMEOUT=1200         # Full embrace workflow timeout
+```
+</CodeGroup>
+
+### Workflow configuration
+
+<CodeGroup>
+```bash Autonomy modes
+# Default autonomy for embrace workflows
+export OCTOPUS_AUTONOMY="supervised"        # supervised, semi-autonomous, autonomous
+
+# Auto-proceed on quality gate pass
+export OCTOPUS_AUTO_PROCEED=true            # Skip approval if gates pass
+
+# Consensus threshold (default: 0.75)
+export OCTOPUS_CONSENSUS_THRESHOLD=0.80     # Require 80% consensus
+```
+
+```bash Quality gates
+# Quality gate configuration
+export OCTOPUS_STRICT_GATES=true            # Fail fast on gate failures
+export OCTOPUS_SKIP_SECURITY_GATE=false     # Never skip security checks
+export OCTOPUS_SKIP_PERFORMANCE_GATE=false  # Never skip performance checks
+
+# Satisfaction targets (factory mode)
+export OCTOPUS_SATISFACTION_TARGET=0.85     # Default satisfaction threshold
+```
+
+```bash Session management
+# Session tracking
+export CLAUDE_SESSION_ID="custom-session"   # Override auto-generated session ID
+export OCTOPUS_RESULTS_DIR="~/.claude-octopus/results/" # Results location
+export OCTOPUS_STATE_DIR=".octo/"           # Project state location
+
+# Cleanup
+export OCTOPUS_KEEP_SESSIONS=10             # Number of sessions to retain
+export OCTOPUS_AUTO_CLEANUP=true            # Auto-delete old sessions
+```
+</CodeGroup>
+
+### Feature flags
+
+<CodeGroup>
+```bash Claude Code features
+# Feature detection (read-only, set by Claude Code)
+export SUPPORTS_PERSISTENT_MEMORY=true      # v2.1.33+ persistent memory
+export SUPPORTS_FAST_OPUS=true              # v2.1.36+ fast Opus mode
+export SUPPORTS_WORKTREE=true               # v2.1.26+ git worktree isolation
+```
+
+```bash Octopus features
+# Enable experimental features
+export OCTOPUS_EXPERIMENTAL=true            # Enable experimental workflows
+export OCTOPUS_DEBUG=true                   # Enable debug logging
+export OCTOPUS_VERBOSE=true                 # Verbose output
+
+# Cost tracking
+export OCTOPUS_COST_TRACKING=true           # Track and report costs
+export OCTOPUS_COST_LIMIT=5.00              # Stop workflows if cost exceeds limit
+```
+</CodeGroup>
+
+### Setting environment variables permanently
+
+Add to your shell profile:
+
+```bash
+# ~/.bashrc or ~/.zshrc
+
+# Provider authentication
+export OPENAI_API_KEY="sk-..."
+export GEMINI_API_KEY="..."
+
+# Octopus preferences
+export OCTOPUS_AUTONOMY="semi-autonomous"
+export OCTOPUS_CONSENSUS_THRESHOLD=0.80
+export OCTOPUS_OPUS_MODE="standard"
+
+# Reload
+source ~/.bashrc  # or source ~/.zshrc
+```
+
+## Settings and preferences
+
+Claude Octopus stores settings in `.claude/settings.json` (project-level) and uses Claude Code's auto memory for persistent preferences.
+
+### Project settings (.claude/settings.json)
+
+```json
+{
+  "enabledPlugins": {
+    "claude-octopus@nyldn-plugins": true
+  },
+  "octopus": {
+    "autonomy": "semi-autonomous",
+    "consensusThreshold": 0.75,
+    "providers": {
+      "codex": {
+        "enabled": true,
+        "model": "gpt-5.3-codex"
+      },
+      "gemini": {
+        "enabled": true,
+        "model": "gemini-pro"
+      }
+    },
+    "costLimit": 5.0,
+    "qualityGates": {
+      "strict": false,
+      "skipSecurity": false,
+      "skipPerformance": false
+    }
+  }
+}
+```
+
+### Auto memory integration (Claude Code v2.1.32+)
+
+Claude Code's auto memory (`~/.claude/projects/.../memory/MEMORY.md`) persists across conversations.
+
+**Octopus records:**
+- Preferred autonomy mode
+- Provider availability (which CLIs installed)
+- Frequently used commands
+- Past project contexts (tech stack, conventions)
+- Model preferences (Opus for premium tasks)
+
+**Example memory:**
+```markdown
+# Claude Octopus Preferences
+
+## User Preferences
+- Autonomy mode: semi-autonomous
+- Consensus threshold: 80%
+- Preferred model: Opus for architecture decisions
+
+## Provider Setup
+- Codex CLI: installed, OAuth authenticated
+- Gemini CLI: installed, API key configured
+
+## Frequent Workflows
+- Uses /octo:quick for simple tasks
+- Prefers /octo:embrace for features
+- Always runs security audits before shipping
+
+## Project Context
+- Tech stack: TypeScript, React, PostgreSQL
+- Coding conventions: ESLint, Prettier, strict mode
+- Deployment: AWS ECS with GitHub Actions
+```
+
+This enables faster workflow startup by skipping provider detection and preference questions.
+
+### Configuration commands
+
+```bash
+# View current configuration
+/octo:doctor config
+
+# Set autonomy mode
+/octo:model-config --autonomy semi-autonomous
+
+# Set consensus threshold
+/octo:model-config --consensus 0.80
+
+# Configure providers
+/octo:model-config --codex-model gpt-5.3-codex
+/octo:model-config --gemini-model gemini-pro
+```
+
+## Autonomy modes
+
+Configure how much human oversight workflows require.
+
+<Tabs>
+  <Tab title="Supervised">
+    **Default mode** — maximum control and oversight
+    
+    **Behavior:**
+    - Approval required after each phase
+    - Review synthesis before proceeding
+    - Best for critical features or learning
+    
+    **Set mode:**
+    ```bash
+    export OCTOPUS_AUTONOMY="supervised"
+    # or
+    /octo:embrace build auth --autonomy supervised
+    ```
+    
+    **Use when:**
+    - High-stakes features
+    - Learning the methodology
+    - Requirements may change
+    - Maximum transparency needed
+  </Tab>
+  
+  <Tab title="Semi-autonomous">
+    **Recommended mode** — balanced approach
+    
+    **Behavior:**
+    - Auto-proceeds if quality gates pass
+    - Approval only when gates fail
+    - Intervenes on security/performance issues
+    
+    **Set mode:**
+    ```bash
+    export OCTOPUS_AUTONOMY="semi-autonomous"
+    # or
+    /octo:embrace build auth --autonomy semi-autonomous
+    ```
+    
+    **Use when:**
+    - Most use cases
+    - Trusted workflows
+    - Want efficiency with safety nets
+  </Tab>
+  
+  <Tab title="Autonomous">
+    **Fully automated** — no interruptions
+    
+    **Behavior:**
+    - Runs all phases automatically
+    - No approval required
+    - Review output, not every step
+    
+    **Set mode:**
+    ```bash
+    export OCTOPUS_AUTONOMY="autonomous"
+    # or
+    /octo:embrace build auth --autonomy autonomous
+    ```
+    
+    **Use when:**
+    - Low-risk tasks
+    - Well-specified features
+    - Factory mode (spec-to-software)
+    - Background processing
+    
+    <Warning>
+    Autonomous mode bypasses all approvals. Review quality gates carefully in results.
+    </Warning>
+  </Tab>
+</Tabs>
+
+### Auto-proceed on quality gate pass
+
+Combine with supervised mode to skip approvals when gates pass:
+
+```bash
+export OCTOPUS_AUTONOMY="supervised"
+export OCTOPUS_AUTO_PROCEED=true
+
+/octo:embrace build auth
+# Proceeds automatically if quality gates pass
+# Pauses only if consensus < 75% or security issues found
+```
+
+## Custom hooks and extensions
+
+Claude Octopus supports custom hooks for extending workflows.
+
+### Hook types
+
+| Hook | When it runs | Use case |
+|------|--------------|----------|
+| `pre-discover` | Before discover phase | Custom research sources |
+| `post-discover` | After discover phase | Export synthesis to docs |
+| `pre-define` | Before define phase | Load external requirements |
+| `post-define` | After define phase | Update project specs |
+| `pre-develop` | Before develop phase | Run linters, formatters |
+| `post-develop` | After develop phase | Run tests, deploy to staging |
+| `pre-deliver` | Before deliver phase | Pre-flight checks |
+| `post-deliver` | After deliver phase | Create PR, notify team |
+| `quality-gate-failed` | When quality gate fails | Custom notifications |
+
+### Creating hooks
+
+Hooks are shell scripts in `.claude/hooks/`:
+
+<Steps>
+  <Step title="Create hooks directory">
+    ```bash
+    mkdir -p .claude/hooks
+    ```
+  </Step>
+  
+  <Step title="Write hook script">
+    Create `.claude/hooks/post-develop.sh`:
+    
+    ```bash
+    #!/bin/bash
+    # Post-develop hook: run tests and deploy to staging
+    
+    set -e
+    
+    echo "Running tests..."
+    npm test
+    
+    echo "Deploying to staging..."
+    ./scripts/deploy-staging.sh
+    
+    echo "Notifying team..."
+    curl -X POST "$SLACK_WEBHOOK" \
+      -H "Content-Type: application/json" \
+      -d '{"text": "New feature deployed to staging"}'
+    ```
+  </Step>
+  
+  <Step title="Make executable">
+    ```bash
+    chmod +x .claude/hooks/post-develop.sh
+    ```
+  </Step>
+  
+  <Step title="Test hook">
+    ```bash
+    /octo:develop build feature
+    # Hook runs automatically after develop phase completes
+    ```
+  </Step>
+</Steps>
+
+### Hook configuration
+
+Configure hooks in `.claude/hooks.json`:
+
+```json
+{
+  "hooks": {
+    "post-develop": {
+      "enabled": true,
+      "script": ".claude/hooks/post-develop.sh",
+      "timeout": 300,
+      "failOnError": true
+    },
+    "quality-gate-failed": {
+      "enabled": true,
+      "script": ".claude/hooks/notify-failure.sh",
+      "timeout": 30,
+      "failOnError": false
+    }
+  }
+}
+```
+
+### Hook environment
+
+Hooks receive context via environment variables:
+
+```bash
+# Available in all hooks
+OCTOPUS_PHASE="develop"              # Current phase
+OCTOPUS_WORKFLOW="embrace"           # Current workflow
+CLAUDE_SESSION_ID="abc123"           # Session ID
+OCTOPUS_RESULTS_DIR="~/.claude-octopus/results/"
+
+# Phase-specific
+OCTOPUS_SYNTHESIS_FILE="probe-synthesis-timestamp.md"
+OCTOPUS_CONSENSUS_SCORE="0.82"       # Consensus percentage
+OCTOPUS_QUALITY_GATE_STATUS="pass"   # pass/fail
+```
+
+### Example hooks
+
+<Accordion title="Export synthesis to Notion">
+  ```bash
+  #!/bin/bash
+  # .claude/hooks/post-discover.sh
+  
+  synthesis="$OCTOPUS_RESULTS_DIR/$OCTOPUS_SYNTHESIS_FILE"
+  
+  curl -X POST "https://api.notion.com/v1/pages" \
+    -H "Authorization: Bearer $NOTION_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d @- <<EOF
+  {
+    "parent": {"database_id": "$NOTION_DATABASE_ID"},
+    "properties": {
+      "Title": {"title": [{"text": {"content": "Research: $OCTOPUS_WORKFLOW"}}]}
+    },
+    "children": [
+      {"type": "code", "code": {"language": "markdown", "rich_text": [{"text": {"content": "$(cat $synthesis)"}}]}}
+    ]
+  }
+  EOF
+  ```
+</Accordion>
+
+<Accordion title="Notify Slack on quality gate failure">
+  ```bash
+  #!/bin/bash
+  # .claude/hooks/quality-gate-failed.sh
+  
+  curl -X POST "$SLACK_WEBHOOK" \
+    -H "Content-Type: application/json" \
+    -d @- <<EOF
+  {
+    "text": "Quality gate failed in $OCTOPUS_PHASE phase",
+    "attachments": [{
+      "color": "danger",
+      "fields": [
+        {"title": "Phase", "value": "$OCTOPUS_PHASE", "short": true},
+        {"title": "Consensus", "value": "$OCTOPUS_CONSENSUS_SCORE", "short": true},
+        {"title": "Session", "value": "$CLAUDE_SESSION_ID", "short": false}
+      ]
+    }]
+  }
+  EOF
+  ```
+</Accordion>
+
+<Accordion title="Run linters before develop">
+  ```bash
+  #!/bin/bash
+  # .claude/hooks/pre-develop.sh
+  
+  echo "Running ESLint..."
+  npm run lint
+  
+  echo "Running Prettier..."
+  npm run format:check
+  
+  echo "Running TypeScript compiler..."
+  npm run typecheck
+  
+  echo "Pre-develop checks passed ✓"
+  ```
+</Accordion>
+
+<Accordion title="Create PR after deliver">
+  ```bash
+  #!/bin/bash
+  # .claude/hooks/post-deliver.sh
+  
+  branch="feature/$OCTOPUS_WORKFLOW-$(date +%Y%m%d)"
+  
+  git checkout -b "$branch"
+  git add .
+  git commit -m "$OCTOPUS_WORKFLOW: completed via Claude Octopus"
+  git push origin "$branch"
+  
+  gh pr create \
+    --title "$OCTOPUS_WORKFLOW" \
+    --body "$(cat $OCTOPUS_RESULTS_DIR/delivery-*.md)" \
+    --base main
+  ```
+</Accordion>
+
+## Configuration best practices
+
+<Accordion title="Use OAuth for external providers">
+  OAuth avoids per-token billing and uses your existing subscriptions:
+  
+  ```bash
+  codex login
+  gemini auth
+  ```
+  
+  Skip API keys unless you don't have subscriptions.
+</Accordion>
+
+<Accordion title="Set autonomy mode per project">
+  Different projects need different oversight levels:
+  
+  ```json
+  // Critical production service
+  {"octopus": {"autonomy": "supervised"}}
+  
+  // Internal tools
+  {"octopus": {"autonomy": "autonomous"}}
+  ```
+</Accordion>
+
+<Accordion title="Use strict quality gates for security-critical features">
+  Never skip security gates for auth, payments, or data handling:
+  
+  ```bash
+  export OCTOPUS_STRICT_GATES=true
+  export OCTOPUS_SKIP_SECURITY_GATE=false
+  ```
+</Accordion>
+
+<Accordion title="Set cost limits to avoid surprises">
+  Prevent runaway costs with limits:
+  
+  ```bash
+  export OCTOPUS_COST_LIMIT=5.00
+  # Workflows stop if cost exceeds $5.00
+  ```
+</Accordion>
+
+<Accordion title="Use hooks for team integration">
+  Automate notifications, PR creation, and deployments:
+  
+  - `post-develop`: Deploy to staging
+  - `post-deliver`: Create PR
+  - `quality-gate-failed`: Notify team
+</Accordion>
+
+## Diagnostics and troubleshooting
+
+### Run diagnostics
+
+```bash
+# Full diagnostics (9 check categories)
+/octo:doctor
+
+# Specific category
+/octo:doctor providers    # Provider installation
+/octo:doctor auth         # Authentication status
+/octo:doctor config       # Configuration
+/octo:doctor hooks        # Hook scripts
+
+# Verbose output
+/octo:doctor --verbose
+
+# JSON output (for CI)
+/octo:doctor --json
+```
+
+### Common issues
+
+<Accordion title="Provider not detected">
+  **Symptom:** `/octo:setup` shows provider as "Not installed"
+  
+  **Fix:**
+  ```bash
+  # Check if CLI is in PATH
+  which codex
+  which gemini
+  
+  # Install if missing
+  brew install codex-cli gemini-cli
+  
+  # Verify installation
+  codex --version
+  gemini --version
+  ```
+</Accordion>
+
+<Accordion title="Authentication failed">
+  **Symptom:** "401 Unauthorized" errors
+  
+  **Fix:**
+  ```bash
+  # Re-authenticate (OAuth)
+  codex login
+  gemini auth
+  
+  # Verify API keys
+  echo $OPENAI_API_KEY
+  echo $GEMINI_API_KEY
+  
+  # Check auth status
+  /octo:doctor auth --verbose
+  ```
+</Accordion>
+
+<Accordion title="Quality gate always fails">
+  **Symptom:** Consensus never reaches threshold
+  
+  **Fix:**
+  ```bash
+  # Lower threshold temporarily
+  export OCTOPUS_CONSENSUS_THRESHOLD=0.70
+  
+  # Or disable strict mode
+  export OCTOPUS_STRICT_GATES=false
+  
+  # Review synthesis files
+  cat ~/.claude-octopus/results/grasp-consensus-*.md
+  ```
+</Accordion>
+
+<Accordion title="Hook not running">
+  **Symptom:** Hook script doesn't execute
+  
+  **Fix:**
+  ```bash
+  # Check hook is executable
+  chmod +x .claude/hooks/post-develop.sh
+  
+  # Verify hook configuration
+  cat .claude/hooks.json
+  
+  # Validate hooks
+  /octo:doctor hooks --verbose
+  
+  # Test hook manually
+  ./.claude/hooks/post-develop.sh
+  ```
+</Accordion>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Using commands" icon="terminal" href="/guides/commands">
+    Learn command structure and the top 8 commands
+  </Card>
+  
+  <Card title="Working with workflows" icon="diagram-project" href="/guides/workflows">
+    Understand workflow progression and quality gates
+  </Card>
+  
+  <Card title="Configuring providers" icon="plug" href="/guides/providers">
+    Set up Codex, Gemini, and cost awareness
+  </Card>
+  
+  <Card title="Command reference" icon="book" href="/commands/overview">
+    Complete reference for all 39+ commands
+  </Card>
+</CardGroup>

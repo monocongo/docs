@@ -1,0 +1,178 @@
+---
+title: Claude Octopus Documentation
+description: Multi-AI orchestration framework for Claude Code that coordinates Codex, Gemini, and Claude with structured workflows and quality gates
+mode: custom
+---
+
+<div className="relative overflow-hidden bg-gradient-to-br from-[#0f1117] via-[#1a1d27] to-[#0f1117] dark:from-[#0f1117] dark:via-[#1a1d27] dark:to-[#0f1117] py-20 lg:py-24">
+  <div className="max-w-6xl mx-auto px-6 lg:px-8">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+      <div className="lg:col-span-7">
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
+          Three brains, one workflow
+        </h1>
+        <p className="text-lg sm:text-xl text-gray-300 dark:text-gray-300 mb-8 max-w-2xl">
+          Multi-AI orchestration framework that coordinates Claude, Codex, and Gemini with structured workflows, 33+ specialized personas, and adversarial quality gates. Built for Claude Code.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <a
+            href="/quickstart"
+            className="inline-flex items-center px-6 py-3 rounded-lg bg-[#94cb04] hover:bg-[#7fb003] text-black font-semibold transition-colors"
+          >
+            Get Started
+            <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </a>
+          <a
+            href="/concepts/architecture"
+            className="inline-flex items-center px-6 py-3 rounded-lg border border-gray-600 hover:border-[#94cb04] bg-transparent hover:bg-white/5 text-white font-semibold transition-colors"
+          >
+            Learn Architecture
+          </a>
+        </div>
+      </div>
+      <div className="lg:col-span-5 flex justify-center lg:justify-end">
+        <div className="relative">
+          <div className="text-8xl lg:text-9xl opacity-80">🐙</div>
+          <div className="absolute -top-4 -right-4 w-32 h-32 bg-[#94cb04]/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-[#94cb04]/10 rounded-full blur-3xl"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-3">
+    Quick start
+  </h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+    Get Claude Octopus running in minutes
+  </p>
+
+  <Steps>
+    <Step title="Install the plugin">
+      Install Claude Octopus from Claude Code's plugin marketplace:
+
+      ```bash
+      /plugin marketplace add https://github.com/nyldn/claude-octopus.git
+      /plugin install claude-octopus@nyldn-plugins
+      ```
+    </Step>
+
+    <Step title="Run setup">
+      Configure your AI providers and check system status:
+
+      ```bash
+      /octo:setup
+      ```
+
+      <Info>
+        Claude Octopus works with just Claude built-in. Add Codex or Gemini for multi-AI orchestration features.
+      </Info>
+    </Step>
+
+    <Step title="Run your first workflow">
+      Try the embrace command to run a full 4-phase workflow:
+
+      ```bash
+      /octo:embrace research authentication patterns
+      ```
+
+      The framework will guide you through discover, define, develop, and deliver phases with quality gates between each.
+    </Step>
+  </Steps>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-3">
+    Explore by feature
+  </h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+    Dive into the capabilities that make Claude Octopus powerful
+  </p>
+
+  <CardGroup cols={2}>
+    <Card title="Double Diamond Workflow" icon="diamond" href="/concepts/double-diamond">
+      Four structured phases (discover, define, develop, deliver) with quality gates between each stage
+    </Card>
+    <Card title="Multi-AI Orchestration" icon="brain" href="/concepts/multi-ai-orchestration">
+      Coordinate Claude, Codex, and Gemini with distinct roles and 75% consensus gates
+    </Card>
+    <Card title="33+ Specialized Personas" icon="users" href="/concepts/personas">
+      Expert agents from backend-architect to security-auditor that activate based on your task
+    </Card>
+    <Card title="46+ Commands" icon="terminal" href="/commands/overview">
+      From /octo:embrace for full workflows to /octo:debug for targeted troubleshooting
+    </Card>
+    <Card title="Dark Factory Mode" icon="industry" href="/commands/skill-commands">
+      Autonomous spec-to-software pipeline with holdout testing and satisfaction scoring
+    </Card>
+    <Card title="OpenClaw Integration" icon="plug" href="/advanced/openclaw">
+      MCP server exposes Octopus workflows to messaging platforms and external clients
+    </Card>
+  </CardGroup>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-3">
+    Core concepts
+  </h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+    Understand how Claude Octopus orchestrates multi-AI workflows
+  </p>
+
+  <CardGroup cols={3}>
+    <Card title="Architecture" icon="sitemap" href="/concepts/architecture">
+      How the orchestration framework coordinates multiple AI providers
+    </Card>
+    <Card title="Workflows" icon="diagram-project" href="/concepts/workflows">
+      Structured phases with quality gates and adversarial review
+    </Card>
+    <Card title="Personas" icon="user-gear" href="/concepts/personas">
+      Specialized agents with distinct roles and expertise
+    </Card>
+  </CardGroup>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-3">
+    Resources
+  </h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+    Additional help and community
+  </p>
+
+  <CardGroup cols={2}>
+    <Card title="GitHub Repository" icon="github" href="https://github.com/nyldn/claude-octopus">
+      View source code, report issues, and contribute to the project
+    </Card>
+    <Card title="Troubleshooting" icon="wrench" href="/troubleshooting/debugging">
+      Common issues and debugging techniques
+    </Card>
+  </CardGroup>
+</div>
+
+<div className="mt-20 mb-16 max-w-5xl mx-auto px-6">
+  <div className="relative overflow-hidden rounded-2xl border border-gray-200 dark:border-[#27272a] bg-gradient-to-br from-gray-50 to-white dark:from-[#1a1d27] dark:to-[#242838] p-8 lg:p-12">
+    <div className="relative z-10">
+      <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-4">
+        Ready to orchestrate?
+      </h2>
+      <p className="text-base text-gray-600 dark:text-gray-400 mb-6 max-w-2xl">
+        Install Claude Octopus and start coordinating multiple AI providers with structured workflows, quality gates, and specialized personas.
+      </p>
+      <a
+        href="/quickstart"
+        className="inline-flex items-center px-6 py-3 rounded-lg bg-[#94cb04] hover:bg-[#7fb003] text-black font-semibold transition-colors"
+      >
+        Get Started
+        <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+        </svg>
+      </a>
+    </div>
+    <div className="absolute top-0 right-0 w-64 h-64 bg-[#94cb04]/10 rounded-full blur-3xl"></div>
+  </div>
+</div>

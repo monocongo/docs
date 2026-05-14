@@ -1,0 +1,513 @@
+---
+title: Installation
+description: Comprehensive installation guide for Claude Octopus with detailed provider setup, configuration, and troubleshooting.
+---
+
+# Installation
+
+Complete guide to installing and configuring Claude Octopus for Claude Code.
+
+## Prerequisites
+
+### Required
+
+- **Claude Code v2.1.50 or later** — Check your version in the about menu
+- **Git** — Used by the plugin marketplace to fetch plugins
+- **Bash shell** — For orchestration scripts (default on macOS/Linux, WSL on Windows)
+
+<Warning>
+**Claude Code version requirement:** Claude Octopus requires v2.1.50 or newer. Earlier versions lack critical plugin APIs for multi-AI orchestration.
+</Warning>
+
+### Optional (for multi-AI features)
+
+- **Codex CLI** — For OpenAI integration
+- **Gemini CLI** — For Google integration
+- **Node.js 18+** — Required only if using the OpenClaw MCP server
+
+<Note>
+You can start using Claude Octopus immediately with just Claude built-in. External providers are optional and only needed for multi-AI orchestration features (parallel research, adversarial debate, consensus validation).
+</Note>
+
+## Installation methods
+
+### Method 1: Plugin marketplace (recommended)
+
+The plugin marketplace method is the recommended approach:
+
+<Steps>
+  <Step title="Add the marketplace repository">
+    In Claude Code, run:
+
+    ```bash
+    /plugin marketplace add https://github.com/nyldn/claude-octopus.git
+    ```
+
+    This registers the Claude Octopus repository as a plugin source.
+  </Step>
+
+  <Step title="Install the plugin">
+    ```bash
+    /plugin install claude-octopus@nyldn-plugins
+    ```
+
+    **Installation scope:**
+    - Default: User-scoped (`--scope user`) — available across all projects
+    - Alternative: Project-scoped (`--scope project`) — only available in current project
+  </Step>
+
+  <Step title="Enable the plugin">
+    The plugin should enable automatically, but you can verify:
+
+    ```bash
+    /plugin enable claude-octopus
+    ```
+  </Step>
+
+  <Step title="Restart Claude Code">
+    Fully quit and reopen Claude Code:
+
+    - **macOS**: Cmd+Q, then reopen
+    - **Windows/Linux**: Complete exit, then relaunch
+
+    <Warning>A simple window close may not be sufficient. Ensure Claude Code fully terminates.</Warning>
+  </Step>
+</Steps>
+
+### Method 2: Terminal installation
+
+Alternatively, install from your terminal:
+
+```bash
+# Add marketplace
+claude -p "/plugin marketplace add https://github.com/nyldn/claude-octopus.git"
+
+# Install plugin
+claude -p "/plugin install claude-octopus@nyldn-plugins"
+
+# Fully restart Claude Code
+```
+
+### Method 3: Manual installation (advanced)
+
+For development or custom modifications:
+
+```bash
+# Clone the repository
+git clone https://github.com/nyldn/claude-octopus.git
+cd claude-octopus
+
+# Run install script
+./install.sh
+```
+
+The install script uses the Claude Code plugin manager internally and is equivalent to Method 1.
+
+## Verification
+
+<Steps>
+  <Step title="Verify plugin is installed">
+    ```bash
+    claude plugin list | grep claude-octopus
+    ```
+
+    Expected output:
+    ```
+    claude-octopus@nyldn-plugins (enabled)
+    ```
+  </Step>
+
+  <Step title="Test a command">
+    Try running setup:
+
+    ```bash
+    /octo:setup
+    ```
+
+    You should see provider detection output.
+  </Step>
+
+  <Step title="Run diagnostics">
+    Run the comprehensive diagnostic tool:
+
+    ```bash
+    /octo:doctor
+    ```
+
+    This checks 9 categories: providers, auth, config, state, smoke tests, hooks, scheduler, skills, and conflicts.
+  </Step>
+</Steps>
+
+## Provider setup
+
+Claude Octopus works with three AI providers. Claude is built-in. Codex and Gemini are optional.
+
+### Claude (built-in)
+
+✅ **No setup required** — Claude is included with Claude Code and works immediately.
+
+**Cost:** Included in your Claude Code subscription (Sonnet 4.6). Opus 4.6 uses per-token billing at $5/$25 per MTok.
+
+### Codex (OpenAI)
+
+Codex provides implementation depth — code patterns, technical analysis, and architecture.
+
+<Tabs>
+  <Tab title="OAuth (recommended)">
+    OAuth authentication is included in your ChatGPT subscription:
+
+    ```bash
+    # Install Codex CLI (if not already installed)
+    npm install -g @openai/codex-cli
+
+    # Authenticate
+    codex login
+    ```
+
+    **Benefits:**
+    - No separate billing — included in ChatGPT subscription
+    - Automatic token refresh
+    - More secure than API keys
+  </Tab>
+
+  <Tab title="API key">
+    For per-token billing without a subscription:
+
+    ```bash
+    # Set environment variable
+    export OPENAI_API_KEY=sk-...
+
+    # Or add to shell profile (~/.zshrc or ~/.bashrc)
+    echo 'export OPENAI_API_KEY=sk-...' >> ~/.zshrc
+    source ~/.zshrc
+    ```
+
+    **Cost:** ~$0.01-0.15 per query depending on model:
+    - GPT-5.3-Codex: $1.75/$14 per MTok
+    - Spark: 15x faster
+    - Mini: ~$0.30/$1.25 per MTok
+  </Tab>
+</Tabs>
+
+### Gemini (Google)
+
+Gemini provides ecosystem breadth — alternatives, security review, and research synthesis.
+
+<Tabs>
+  <Tab title="OAuth (recommended)">
+    OAuth authentication is included in your Google AI subscription:
+
+    ```bash
+    # Install Gemini CLI (if not already installed)
+    npm install -g @google/gemini-cli
+
+    # Authenticate
+    gemini login
+    ```
+
+    **Benefits:**
+    - Included in Google AI subscription
+    - Automatic credential management
+  </Tab>
+
+  <Tab title="API key">
+    For per-token billing:
+
+    ```bash
+    # Set environment variable
+    export GEMINI_API_KEY=...
+
+    # Or add to shell profile
+    echo 'export GEMINI_API_KEY=...' >> ~/.zshrc
+    source ~/.zshrc
+    ```
+
+    **Cost:** ~$0.01-0.03 per query (Gemini Pro)
+  </Tab>
+</Tabs>
+
+### Verify provider configuration
+
+After configuring providers, run setup to verify:
+
+```bash
+/octo:setup
+```
+
+Expected output with all providers:
+
+```
+Claude Octopus Setup Status
+
+Providers:
+  Claude: ✓ Built-in
+  Codex CLI: ✓ Authenticated via OAuth
+  Gemini CLI: ✓ Authenticated via API key
+
+You're all set! Multi-AI features are enabled.
+
+Try: /octo:embrace build a user authentication system
+```
+
+## Configuration
+
+### Project-specific settings
+
+Claude Octopus stores project state in `.octo/` directory:
+
+```
+project-root/
+├── .octo/
+│   ├── STATE.md           # Current phase and progress
+│   ├── LESSONS.md         # Captured insights
+│   └── checkpoints/       # Rollback points
+```
+
+This directory is automatically created on first use.
+
+### Global settings
+
+User-level configuration lives in `~/.claude-octopus/`:
+
+```
+~/.claude-octopus/
+├── results/               # Workflow outputs
+├── logs/                  # Execution logs
+└── config/                # User preferences
+```
+
+### Autonomy modes
+
+Configure how much human oversight workflows require:
+
+| Mode | Behavior | When to use |
+|------|----------|-------------|
+| **Supervised** (default) | Pause after each phase for approval | Learning the tool, high-stakes projects |
+| **Semi-autonomous** | Only prompt if quality gates fail | Trusted workflows, moderate oversight |
+| **Autonomous** | Run all phases without intervention | Repeated patterns, full automation |
+
+Set during workflow execution:
+
+```bash
+/octo:embrace build feature  # Will prompt for autonomy preference
+```
+
+Or configure via orchestrate.sh:
+
+```bash
+${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh embrace --autonomy autonomous "your prompt"
+```
+
+## Troubleshooting
+
+### Commands not recognized
+
+<AccordionGroup>
+  <Accordion title="Plugin not loading after installation">
+    **Symptoms:** `/octo:*` commands show "unknown command" error
+
+    **Solutions:**
+    1. Verify installation: `claude plugin list | grep claude-octopus`
+    2. Check plugin is enabled: `/plugin enable claude-octopus`
+    3. **Fully restart Claude Code** (Cmd+Q on macOS, not just close window)
+    4. Check debug logs: `~/.claude/debug/*.txt`
+    5. Try reinstalling:
+       ```bash
+       /plugin uninstall claude-octopus@nyldn-plugins
+       /plugin install claude-octopus@nyldn-plugins
+       ```
+  </Accordion>
+
+  <Accordion title="Scope errors during uninstall">
+    **Symptoms:** "Plugin not found" when trying to uninstall
+
+    **Solution:** Match the scope used during installation:
+    ```bash
+    # If installed user-scoped (default)
+    /plugin uninstall claude-octopus@nyldn-plugins --scope user
+
+    # If installed project-scoped
+    /plugin uninstall claude-octopus@nyldn-plugins --scope project
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Provider issues
+
+<AccordionGroup>
+  <Accordion title="Codex CLI not detected">
+    **Symptoms:** Setup shows Codex as unavailable
+
+    **Solutions:**
+    1. Check CLI is installed: `which codex`
+    2. Verify authentication:
+       ```bash
+       codex --version
+       codex whoami  # Check logged-in user
+       ```
+    3. Re-authenticate:
+       ```bash
+       codex logout
+       codex login
+       ```
+    4. Check PATH includes npm global bin directory
+  </Accordion>
+
+  <Accordion title="Gemini CLI not detected">
+    **Symptoms:** Setup shows Gemini as unavailable
+
+    **Solutions:**
+    1. Check CLI is installed: `which gemini`
+    2. Verify API key is set:
+       ```bash
+       echo $GEMINI_API_KEY
+       ```
+    3. Test authentication:
+       ```bash
+       gemini --version
+       ```
+  </Accordion>
+
+  <Accordion title="Provider timeouts during workflows">
+    **Symptoms:** Workflows fail with timeout errors
+
+    **Solutions:**
+    1. Check network connectivity
+    2. Verify API keys are valid (not expired)
+    3. Check rate limits on provider accounts
+    4. Try running with single provider first:
+       ```bash
+       /octo:discover <query>  # Uses only Claude by default
+       ```
+  </Accordion>
+</AccordionGroup>
+
+### Workflow issues
+
+<AccordionGroup>
+  <Accordion title="Results not appearing in expected location">
+    **Symptoms:** Workflow completes but files aren't found
+
+    **Check these locations:**
+    ```bash
+    # Global results
+    ls -la ~/.claude-octopus/results/
+
+    # Project state
+    ls -la .octo/
+
+    # Recent results
+    ls -lt ~/.claude-octopus/results/ | head -10
+    ```
+  </Accordion>
+
+  <Accordion title="Quality gates failing unexpectedly">
+    **Symptoms:** Workflows blocked at 75% consensus gate
+
+    **Understanding quality gates:**
+    - 75% threshold means 2 out of 3 providers must agree
+    - Failures indicate genuine disagreement worth investigating
+    - Review synthesis files to see divergent perspectives
+
+    **Solutions:**
+    1. Review the synthesis: `~/.claude-octopus/results/*-synthesis-*.md`
+    2. Provide more context in your prompt
+    3. Run phases individually to isolate issues:
+       ```bash
+       /octo:discover <topic>  # Research first
+       /octo:define <scope>    # Then clarify
+       ```
+  </Accordion>
+</AccordionGroup>
+
+### Environment diagnostics
+
+Use the built-in doctor command for comprehensive checks:
+
+```bash
+# Run all diagnostics
+/octo:doctor
+
+# Check specific category
+/octo:doctor providers
+/octo:doctor auth --verbose
+
+# Machine-readable output
+/octo:doctor --json
+```
+
+**Doctor checks 9 categories:**
+
+| Category | What it checks |
+|----------|----------------|
+| `providers` | Claude Code version, Codex CLI, Gemini CLI installation |
+| `auth` | Authentication status for each provider |
+| `config` | Plugin version, install scope, feature flags |
+| `state` | Project state.json, stale results, workspace writability |
+| `smoke` | Smoke test cache, model configuration |
+| `hooks` | hooks.json validity, hook scripts |
+| `scheduler` | Scheduler daemon, jobs, budget gates |
+| `skills` | Skill files loaded and valid |
+| `conflicts` | Detection of conflicting plugins |
+
+## Update and maintenance
+
+### Updating Claude Octopus
+
+```bash
+# Update from marketplace
+/plugin update claude-octopus
+
+# Or via terminal
+claude -p "/plugin update claude-octopus"
+```
+
+### Checking version
+
+View current version:
+
+```bash
+/plugin list | grep claude-octopus
+```
+
+Or check the plugin.json:
+
+```bash
+cat ~/.claude/plugins/claude-octopus@nyldn-plugins/.claude-plugin/plugin.json | grep version
+```
+
+### Clean uninstall
+
+Remove plugin and all data:
+
+```bash
+# Uninstall plugin
+/plugin uninstall claude-octopus@nyldn-plugins
+
+# Remove global data (optional)
+rm -rf ~/.claude-octopus/
+
+# Remove project state (optional, per-project)
+rm -rf .octo/
+```
+
+<Warning>
+Removing `~/.claude-octopus/` deletes all workflow results and logs. Consider backing up first.
+</Warning>
+
+## What's next?
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Run your first workflow in under 5 minutes
+  </Card>
+  <Card title="Command Reference" icon="book" href="/commands/overview">
+    Explore all 46 commands
+  </Card>
+  <Card title="Double Diamond" icon="diamond" href="/concepts/double-diamond">
+    Learn the four-phase workflow methodology
+  </Card>
+  <Card title="Personas" icon="users" href="/concepts/personas">
+    Discover the 33 specialized AI agents
+  </Card>
+</CardGroup>

@@ -1,0 +1,182 @@
+---
+title: 'Command Reference'
+description: 'Complete guide to Claude Octopus commands and workflows'
+---
+
+# Command Reference
+
+Claude Octopus provides 46+ commands organized into workflow commands, system commands, and specialized skills. Commands can be invoked explicitly (e.g., `/octo:embrace`) or triggered naturally through conversational prompts.
+
+## Command Categories
+
+<CardGroup cols={3}>
+  <Card title="Workflow Commands" icon="diagram-project" href="/commands/workflow-commands">
+    Double Diamond methodology phases and full lifecycle workflows
+  </Card>
+  <Card title="System Commands" icon="gear" href="/commands/system-commands">
+    Setup, configuration, diagnostics, and mode switching
+  </Card>
+  <Card title="Skill Commands" icon="wand-magic-sparkles" href="/commands/skill-commands">
+    Specialized capabilities like debate, review, security, TDD, and more
+  </Card>
+</CardGroup>
+
+## Quick Reference
+
+### Core Workflow Commands
+
+| Command | Purpose | Multi-AI | When to Use |
+|---------|---------|----------|-------------|
+| `/octo:embrace` | Full 4-phase workflow | Yes | Complex features needing research → delivery |
+| `/octo:discover` | Research & exploration | Yes | Starting new features, researching options |
+| `/octo:define` | Requirements & scope | Yes | Clarifying requirements, scoping features |
+| `/octo:develop` | Implementation | Yes | Building features with quality gates |
+| `/octo:deliver` | Validation & review | Yes | Final quality assurance and testing |
+
+### Alternative Phase Names
+
+Each workflow phase has alternative names from the original Double Diamond methodology:
+
+- **Discover** = Probe (divergent research)
+- **Define** = Grasp (convergent scoping)
+- **Develop** = Tangle (divergent implementation)
+- **Deliver** = Ink (convergent validation)
+
+### Smart Router
+
+| Command | Purpose | Example |
+|---------|---------|----------|
+| `/octo` | Natural language router | `/octo research OAuth patterns` |
+
+### System Commands
+
+| Command | Purpose | Example |
+|---------|---------|----------|
+| `/octo:setup` | Configure providers | Check setup status and get config instructions |
+| `/octo:doctor` | Environment diagnostics | Verify all components working |
+| `/octo:status` | Project state | View current workflow status |
+| `/octo:resume` | Restore context | Resume from last session |
+| `/octo:dev` | Dev Work mode | Switch to development personas |
+| `/octo:km` | Knowledge mode | Switch to research personas |
+
+### Specialized Skills
+
+| Command | Purpose | Multi-AI | When to Use |
+|---------|---------|----------|-------------|
+| `/octo:debate` | AI debate hub | Yes | Comparing options, adversarial review |
+| `/octo:review` | Code review | Yes | Pre-commit checks, quality assessment |
+| `/octo:security` | Security audit | Yes | OWASP compliance, vulnerability detection |
+| `/octo:tdd` | Test-driven dev | Yes | Red-green-refactor implementation |
+| `/octo:factory` | Dark Factory | Yes | Spec-in, software-out autonomous pipeline |
+| `/octo:prd` | PRD generation | Yes | AI-optimized product requirements |
+| `/octo:claw` | OpenClaw admin | No | Gateway lifecycle management |
+
+### Planning & Orchestration
+
+| Command | Purpose | Multi-AI | When to Use |
+|---------|---------|----------|-------------|
+| `/octo:plan` | Strategic planning | No | Create execution plans before running |
+| `/octo:parallel` | Team of teams | Yes | Decompose work into parallel packages |
+| `/octo:multi` | Force multi-provider | Yes | Manual override for parallel execution |
+| `/octo:spec` | NLSpec authoring | Yes | Write structured specifications |
+
+## Command Syntax
+
+### Explicit Commands
+
+```bash
+/octo:embrace "build user authentication"
+/octo:discover "OAuth security patterns"
+/octo:review src/auth.ts
+```
+
+### Natural Language (Smart Router)
+
+```bash
+/octo research OAuth patterns
+/octo build authentication system
+/octo should we use Redis or Memcached?
+```
+
+### With Arguments
+
+```bash
+/octo:factory --spec path/to/spec.md
+/octo:km on                    # Switch to Knowledge Work mode
+/octo:km off                   # Switch to Dev Work mode
+```
+
+## Common Flags and Options
+
+### Global Flags
+
+```bash
+--autonomy supervised    # Pause after each phase (default)
+--autonomy semi-auto    # Only pause on quality gate failures
+--autonomy autonomous   # Run all phases without intervention
+--ci                   # Non-interactive mode for automation
+```
+
+### Model Configuration
+
+```bash
+export OCTOPUS_CODEX_MODEL="gpt-4"           # Override Codex model
+export OCTOPUS_GEMINI_MODEL="gemini-pro"     # Override Gemini model
+export OCTOPUS_OPUS_MODE="fast"              # Use fast Opus (6x cost)
+```
+
+### Provider Control
+
+```bash
+export CODEX_SKIP=true     # Disable Codex provider
+export GEMINI_SKIP=true    # Disable Gemini provider
+```
+
+## Visual Indicators
+
+When multi-AI workflows execute, you'll see provider indicators:
+
+- 🐙 Claude Octopus mode active
+- 🔴 Codex CLI executing (uses OPENAI_API_KEY)
+- 🟡 Gemini CLI executing (uses GEMINI_API_KEY)
+- 🟣 Perplexity web search (uses PERPLEXITY_API_KEY)
+- 🔵 Claude processing (included with Claude Code)
+
+## Cost Awareness
+
+| Provider | Cost Range | Source |
+|----------|------------|--------|
+| Codex | $0.01-0.15/query | User's OPENAI_API_KEY |
+| Gemini | $0.01-0.03/query | User's GEMINI_API_KEY |
+| Perplexity | $0.01-0.05/query | User's PERPLEXITY_API_KEY |
+| Claude | Included | Claude Code subscription |
+| Opus Fast | $30/$150 per MTok | 6x cost, lower latency |
+
+<Tip>
+For simple tasks that don't need multi-AI perspectives, Claude handles them directly without invoking external providers.
+</Tip>
+
+## Auto-Activation
+
+Claude Octopus automatically activates for:
+- Research keywords: "research", "investigate", "explore"
+- Build keywords: "build", "create", "implement" (with clear target)
+- Validation keywords: "validate", "review", "check", "audit"
+- Debate keywords: "should", "vs", "or", "compare"
+- Lifecycle keywords: "complete", "full", "end-to-end"
+
+No need to memorize commands—just describe what you want naturally.
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Workflow Commands" icon="diagram-project" href="/commands/workflow-commands">
+    Learn the Double Diamond phases
+  </Card>
+  <Card title="System Commands" icon="gear" href="/commands/system-commands">
+    Configure your environment
+  </Card>
+  <Card title="Skill Commands" icon="wand-magic-sparkles" href="/commands/skill-commands">
+    Explore specialized capabilities
+  </Card>
+</CardGroup>

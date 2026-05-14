@@ -1,0 +1,151 @@
+---
+title: Introduction
+description: Claude Octopus is a multi-AI orchestration framework for Claude Code that coordinates three AI providers with distinct roles, adversarial review, and consensus gates.
+---
+
+# Introduction
+
+Claude Octopus is a Claude Code plugin that turns one model into three. It orchestrates Codex, Gemini, and Claude with distinct roles, adversarial review, and consensus gates — so no single model's blind spots slip through.
+
+## What problem does it solve?
+
+Other multi-AI tools run providers in parallel and hand you three answers. Claude Octopus assigns each model a distinct role — Codex for implementation depth, Gemini for ecosystem breadth, Claude for synthesis — then enforces a 75% consensus gate before anything ships. Disagreements get caught, not ignored.
+
+## Key features
+
+### Multi-AI orchestration
+
+Coordinate three AI providers across every workflow:
+
+| Provider | Role |
+|----------|------|
+| **Codex** | Implementation depth — code patterns, technical analysis, architecture |
+| **Gemini** | Ecosystem breadth — alternatives, security review, research synthesis |
+| **Claude** | Orchestration — quality gates, consensus building, final synthesis |
+
+Providers run in parallel for research, sequentially for problem scoping, and adversarially for review. A 75% consensus quality gate prevents questionable work from shipping.
+
+### Double Diamond methodology
+
+Every task moves through four structured phases adapted from the UK Design Council's framework:
+
+| Phase | Command | What happens |
+|-------|---------|-------------|
+| **Discover** | `/octo:discover` | Multi-AI research and broad exploration |
+| **Define** | `/octo:define` | Requirements clarification with consensus |
+| **Develop** | `/octo:develop` | Implementation with quality gates |
+| **Deliver** | `/octo:deliver` | Adversarial review and go/no-go scoring |
+
+Run phases individually or all four with `/octo:embrace`. Configure autonomy: supervised (approve each phase), semi-autonomous (intervene on failures), or autonomous (run all four).
+
+### 33 specialized personas
+
+Not generic agents. Specialized personas that activate automatically based on your request:
+
+- **Software Engineering (11)**: backend-architect, frontend-developer, tdd-orchestrator, debugger, security-auditor, and more
+- **Specialized Development (6)**: python-pro, typescript-pro, database-architect, ai-engineer, cloud-architect, graphql-architect
+- **Documentation & Communication (5)**: docs-architect, product-writer, exec-communicator, academic-writer, mermaid-expert
+- **Research & Strategy (4)**: research-synthesizer, strategy-analyst, ux-researcher, business-analyst
+- **Business & Compliance (3)**: finance-analyst, legal-compliance-advisor, marketing-strategist
+- **Creative & Design (4)**: Specialized visual and content creation
+
+When you say "audit my API for vulnerabilities," security-auditor activates. When you say "write a research paper," academic-writer takes over.
+
+### 46 commands
+
+<Accordion title="Top 8 tentacles — one per arm">
+Eight commands that orchestrate up to three AI providers, apply quality gates, and produce deliverables:
+
+```bash
+/octo:embrace build stripe integration     # Full lifecycle: research → define → develop → deliver
+/octo:factory "build a CLI"                # Autonomous pipeline — spec in, software out
+/octo:debate monorepo vs microservices     # Structured three-way AI debate with consensus
+/octo:research htmx vs react in 2026       # Multi-source synthesis from three AI providers
+/octo:review                                # Code review with security + 4x10 scoring
+/octo:tdd create user auth                 # Red-green-refactor with test discipline
+/octo:security                              # OWASP vulnerability scan + remediation
+/octo:prd mobile checkout redesign          # AI-optimized PRD with 100-point scoring
+```
+</Accordion>
+
+<Accordion title="31 additional commands">
+Including: debug, extract, deck, docs, schedule, parallel, sentinel, brainstorm, claw, doctor, and more.
+
+**Don't remember the command name?** Just describe what you need:
+
+```
+/octo research microservices patterns    → routes to discover phase
+/octo build user authentication          → routes to develop phase
+/octo compare Redis vs DynamoDB          → routes to debate
+```
+
+The smart router parses your intent and selects the right workflow.
+</Accordion>
+
+## How it works at a high level
+
+### Three brains, one workflow
+
+1. **Parallel research** — Multiple AI providers research different angles simultaneously
+2. **Consensus building** — 75% agreement required before advancing
+3. **Quality gates** — Each phase validates before the next begins
+4. **Adversarial review** — Providers challenge each other's work ("the squeeze")
+
+### Dark Factory mode
+
+Takes a spec and autonomously runs the full pipeline — research, define, develop, deliver — with holdout testing and satisfaction scoring. You review the output, not every step.
+
+```bash
+/octo:factory "build a CLI that converts CSV to JSON"
+```
+
+### Works with just Claude. Scales to three.
+
+Zero external providers needed to start. You get every persona, every workflow, every skill on day one. Add Codex or Gemini and multi-AI orchestration lights up — parallel research, adversarial debate, cross-model review.
+
+### Full cost transparency
+
+Visual indicators show exactly which providers are active and whose billing they hit:
+
+| Indicator | Meaning | Cost Source |
+|-----------|---------|-------------|
+| 🐙 | Multi-AI mode active | Multiple APIs |
+| 🔴 | Codex CLI executing | User's OPENAI_API_KEY |
+| 🟡 | Gemini CLI executing | User's GEMINI_API_KEY |
+| 🔵 | Claude subagent | Included with Claude Code |
+
+Smart cost routing picks the cheapest provider that can handle the job. No hidden API calls, no surprise charges.
+
+## Who should use it?
+
+Claude Octopus is built for:
+
+<CardGroup cols={2}>
+  <Card title="Developers" icon="code">
+    Building features that need research, design, implementation, and validation in one workflow
+  </Card>
+  <Card title="Teams" icon="users">
+    Projects requiring multiple perspectives and adversarial review to catch edge cases
+  </Card>
+  <Card title="Solo builders" icon="user">
+    Anyone who wants structured quality gates and multi-AI validation without manual coordination
+  </Card>
+  <Card title="Researchers" icon="magnifying-glass">
+    Knowledge workers who need deep research synthesis and consensus-driven insights
+  </Card>
+</CardGroup>
+
+<Note>
+**Start simple:** Use Claude Octopus with just Claude built-in. Add external providers (Codex, Gemini) when you need multi-AI features like parallel research and adversarial debate.
+</Note>
+
+## What's next?
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get to your first workflow in under 5 minutes
+  </Card>
+  <Card title="Installation" icon="download" href="/installation">
+    Detailed setup with provider configuration
+  </Card>
+</CardGroup>

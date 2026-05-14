@@ -1,0 +1,321 @@
+---
+title: OpenClaw integration
+description: Expose Claude Octopus workflows to messaging platforms with OpenClaw
+---
+
+Claude Octopus ships with an OpenClaw compatibility layer that exposes workflows to messaging platforms (Telegram, Discord, Signal, WhatsApp) through the OpenClaw framework — without modifying the core Claude Code plugin.
+
+## What is OpenClaw
+
+[OpenClaw](https://github.com/openclaw/openclaw) is an open-source AI assistant framework that connects Claude to messaging platforms, IDEs, and custom interfaces. It provides:
+
+- **Multi-platform messaging** — Telegram, Discord, Signal, WhatsApp
+- **Extension API** — Plugin architecture for custom tools
+- **MCP client** — Connects to Model Context Protocol servers
+- **Web dashboard** — Conversation management UI
+
+## Architecture
+
+Claud Octopus integrates with OpenClaw through two components:
+
+```
+Claude Code Plugin (unchanged)
+  └── .mcp.json ─── MCP Server ─── orchestrate.sh
+                        ↑
+OpenClaw Extension ────┘
+```
+
+| Component | Location | Purpose |
+|-----------|----------|---------|  
+| **MCP Server** | `mcp-server/` | Exposes 10 Octopus tools via Model Context Protocol |
+| **OpenClaw Extension** | `openclaw/` | Wraps workflows for OpenClaw's extension API |
+| **Skill Schema** | `mcp-server/src/schema/skill-schema.json` | Universal skill metadata format |
+
+This architecture preserves exact behavioral parity with the Claude Code plugin — all execution flows through the same `orchestrate.sh` infrastructure.
+
+## MCP server architecture
+
+The MCP server auto-starts when the plugin is enabled (via `.mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "octo-claw": {
+      "command": "node",
+      "args": ["./mcp-server/dist/index.js"],
+      "env": {
+        "CLAUDE_OCTOPUS_MCP_MODE": "true"
+      }
+    }
+  }
+}
+```
+
+See `.mcp.json` in source code:~/workspace/source/.mcp.json
+
+### Server lifecycle
+
+1. Claude Code loads `.mcp.json` on plugin activation
+2. Spawns `node mcp-server/dist/index.js` via stdio transport
+3. Server registers 10 Octopus tools with MCP protocol
+4. Any MCP client can connect and invoke tools
+5. Server delegates to `orchestrate.sh` for execution
+
+## Installing the OpenClaw extension
+
+### Option 1: From git (recommended)
+
+```bash
+cd your-openclaw-installation
+npm install github:nyldn/claude-octopus#main
+```
+
+This installs the extension from the `openclaw/` directory of the Claude Octopus repository.
+
+### Option 2: From local clone
+
+If you've cloned Claude Octopus:
+
+```bash
+cd claude-octopus/openclaw
+npm install
+npm run build
+
+# Link to OpenClaw
+cd your-openclaw-installation  
+npm link ../claude-octopus/openclaw
+```
+
+### Option 3: From npm (when published)
+
+```bash
+cd your-openclaw-installation
+npm install @octo-claw/octo-claw
+```
+
+### Configure OpenClaw
+
+Add to your OpenClaw configuration:
+
+```yaml
+# openclaw.config.yaml
+extensions:
+  - name: octo-claw
+    enabled: true
+    config:
+      enabledWorkflows:
+        - discover
+        - define  
+        - develop
+        - deliver
+        - embrace
+        - debate
+        - review
+        - security
+      autonomyMode: supervised  # supervised | semi-autonomous | autonomous
+```
+
+## Exposed tools and capabilities
+
+The MCP server exposes 11 tools:
+
+### Workflow tools
+
+#### `octopus_discover`
+
+Run the Discover (Probe) phase — multi-provider research.
+
+**Parameters:**
+- `prompt` (string, required) — Topic to research
+
+**Example:**
+```typescript
+await invoke("octopus_discover", {
+  prompt: "Research OAuth 2.0 security patterns"
+});
+```
+
+#### `octopus_define`
+
+Run the Define (Grasp) phase — consensus building on requirements.
+
+**Parameters:**
+- `prompt` (string, required) — Requirements to define
+
+#### `octopus_develop`
+
+Run the Develop (Tangle) phase — implementation with quality gates.
+
+**Parameters:**
+- `prompt` (string, required) — What to implement
+- `quality_threshold` (number, optional) — Minimum quality score (0-100, default: 75)
+
+#### `octopus_deliver`  
+
+Run the Deliver (Ink) phase — final validation and delivery.
+
+**Parameters:**
+- `prompt` (string, required) — What to validate and deliver
+
+#### `octopus_embrace`
+
+Run the full Double Diamond workflow (all 4 phases).
+
+**Parameters:**
+- `prompt` (string, required) — Full task or project  
+- `autonomy` (enum, optional) — `supervised` | `semi-autonomous` | `autonomous` (default: `supervised`)
+
+**Example:**
+```typescript
+await invoke("octopus_embrace", {
+  prompt: "Build user authentication system",
+  autonomy: "semi-autonomous"
+});
+```
+
+### Specialized tools
+
+#### `octopus_debate`
+
+Three-way AI debate between Claude, Gemini, and Codex.
+
+**Parameters:**
+- `question` (string, required) — Question to debate
+- `rounds` (number, optional) — Debate rounds (1-10, default: 1)
+- `style` (enum, optional) — `quick` | `thorough` | `adversarial` | `collaborative`
+- `mode` (enum, optional) — `cross-critique` | `blinded` (default: `cross-critique`)
+
+#### `octopus_review`
+
+Expert code review with multi-provider analysis.
+
+**Parameters:**
+- `target` (string, required) — File path or directory to review
+
+#### `octopus_security`
+
+Comprehensive security audit with OWASP compliance.
+
+**Parameters:**
+- `target` (string, required) — File path or directory to audit
+
+### Introspection tools
+
+#### `octopus_list_skills`
+
+List all available Claude Octopus skills with descriptions.
+
+**Parameters:** None
+
+#### `octopus_status`
+
+Check provider availability and configuration status.
+
+**Parameters:** None
+
+### IDE integration tool
+
+#### `octopus_set_editor_context`
+
+Inject IDE editor state (active file, selection, cursor) into workflows.
+
+**Parameters:**
+- `filename` (string, optional) — Absolute path to active file
+- `selection` (string, optional) — Selected text (max 50KB)
+- `cursor_line` (number, optional) — Current cursor line (1-based)
+- `language_id` (string, optional) — Language ID (e.g., `typescript`, `python`)
+- `workspace_root` (string, optional) — Workspace root directory
+
+<Warning>
+  Call `octopus_set_editor_context` before running workflow tools to give Octopus awareness of what the user is working on.
+</Warning>
+
+## Build and validate
+
+Claude Octopus includes scripts for building and validating the OpenClaw integration:
+
+### Build the skill registry
+
+```bash
+./scripts/build-openclaw.sh
+```
+
+This regenerates the skill registry from frontmatter metadata in `.claude/skills/*.md`.
+
+### Validate integration
+
+```bash
+./tests/validate-openclaw.sh
+```
+
+Runs 13-check validation suite:
+
+1. ✓ MCP server builds without errors
+2. ✓ OpenClaw extension builds without errors  
+3. ✓ All 11 tools are registered
+4. ✓ Skill schema is valid JSON Schema
+5. ✓ orchestrate.sh is executable
+6. ✓ No TypeScript errors in MCP server
+7. ✓ No TypeScript errors in OpenClaw extension
+8. ✓ MCP server package.json is valid
+9. ✓ OpenClaw extension package.json is valid
+10. ✓ Security: blocked env vars are enforced
+11. ✓ Security: path traversal prevention
+12. ✓ IDE context: selection size limit
+13. ✓ Hook execution order is correct
+
+### CI mode
+
+```bash
+./scripts/build-openclaw.sh --check
+```
+
+Exits with non-zero status if the skill registry is out of sync (useful for CI pipelines).
+
+## Security considerations
+
+### Environment variable isolation
+
+The MCP server blocks security-critical environment variables from being overridden:
+
+```typescript
+const BLOCKED_ENV_VARS = new Set([
+  "OCTOPUS_SECURITY_V870",
+  "OCTOPUS_GEMINI_SANDBOX",
+  "OCTOPUS_CODEX_SANDBOX",
+  "CLAUDE_OCTOPUS_AUTONOMY",
+]);
+```
+
+See `mcp-server/src/index.ts` in source code:~/workspace/source/mcp-server/src/index.ts:54
+
+### Path traversal prevention
+
+IDE context paths are validated to reject `..` sequences:
+
+```typescript
+if (value && /\.\.[\\/ ]/.test(value)) {
+  return { isError: true, text: `Error: ${label} cannot contain '..'` };
+}
+```
+
+### API key sanitization
+
+Error messages sanitize potential API key leaks:
+
+```typescript
+const sanitized = msg.replace(/[A-Za-z_]+KEY=[^\s]+/g, "[REDACTED]");
+```
+
+## Source code reference
+
+- **MCP server**: `mcp-server/src/index.ts` in source code:~/workspace/source/mcp-server/src/index.ts
+- **OpenClaw extension**: `openclaw/src/index.ts` in source code:~/workspace/source/openclaw/src/index.ts  
+- **MCP config**: `.mcp.json` in source code:~/workspace/source/.mcp.json
+- **Extension config**: `openclaw/package.json` in source code:~/workspace/source/openclaw/package.json
+
+## Related documentation
+
+- [MCP Server details](/advanced/mcp-server) — Deep dive into MCP architecture
+- [Workflows](/concepts/workflows) — Understanding Double Diamond phases
+- [Configuration](/guides/configuration) — Environment variables and autonomy modes

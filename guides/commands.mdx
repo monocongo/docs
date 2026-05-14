@@ -1,0 +1,522 @@
+---
+title: Using commands effectively
+description: Learn how to use Claude Octopus commands, the smart router, and command composition to orchestrate multi-AI workflows
+---
+
+# Using commands effectively
+
+Claude Octopus provides 39+ commands in the `/octo:*` namespace. This guide covers the most powerful commands, the smart router for natural language workflows, and techniques for command composition.
+
+## Command structure
+
+All Claude Octopus commands use the `/octo:` namespace to avoid conflicts with Claude Code's built-in commands.
+
+### Basic syntax
+
+```bash
+/octo:<command> <arguments>
+```
+
+**Examples:**
+```bash
+/octo:setup                          # Check provider status
+/octo:discover OAuth patterns        # Research workflow
+/octo:debate Redis vs Memcached      # AI debate
+/octo:embrace build authentication   # Full 4-phase workflow
+```
+
+### Why the namespace?
+
+**Namespace isolation** ensures your existing Claude Code setup remains untouched. Only `/octo:*` commands activate the plugin—everything else works exactly as before.
+
+<Tip>
+The `/octo:` prefix is required for slash commands, but you can skip it when using the smart router: just type `octo research X` instead of `/octo:discover X`.
+</Tip>
+
+## Top 8 commands
+
+Eight essential commands—one per tentacle. Each orchestrates up to three AI providers and applies quality gates.
+
+### 1. /octo:embrace
+
+Full lifecycle workflow: discover → define → develop → deliver
+
+```bash
+/octo:embrace build stripe integration
+```
+
+**What it does:**
+- Runs all 4 phases of the Double Diamond methodology
+- Multi-provider research, consensus building, implementation, and validation
+- Quality gates between phases prevent sloppy work from advancing
+
+**When to use:**
+- Complex features requiring research through implementation
+- High-stakes projects needing validation
+- When you want multiple AI perspectives across the entire lifecycle
+
+**Autonomy modes:**
+- **Supervised** (default): Review and approve after each phase
+- **Semi-autonomous**: Only intervene if quality gates fail
+- **Autonomous**: Run all 4 phases automatically
+
+See [Working with workflows](/guides/workflows) for details on workflow progression.
+
+---
+
+### 2. /octo:factory
+
+Dark Factory mode—autonomous spec-to-software pipeline
+
+```bash
+/octo:factory "build a CLI that converts CSV to JSON"
+```
+
+**What it does:**
+- Takes a spec and autonomously runs the full pipeline
+- Generates test scenarios, implements via embrace workflow
+- Holdout testing (80/20 split) validates against blind scenarios
+- Satisfaction scoring across 4 dimensions
+
+**7-phase pipeline:**
+1. Parse spec → validate and extract requirements
+2. Generate scenarios → multi-provider scenario creation
+3. Split holdout → 80/20 split ensuring diverse coverage
+4. Embrace workflow → full 4-phase implementation
+5. Holdout tests → blind evaluation against withheld scenarios
+6. Score satisfaction → weighted scoring across dimensions
+7. Report → verdict (PASS/WARN/FAIL) with composite score
+
+**Cost:** ~$0.50-2.00 per run (20-30 agent calls)
+
+<Warning>
+Factory mode is fully autonomous. Review the spec carefully before running—you'll see the output, not every step.
+</Warning>
+
+---
+
+### 3. /octo:debate
+
+Structured three-way AI debate with consensus scoring
+
+```bash
+/octo:debate monorepo vs microservices
+/octo:debate -r 3 Should we use GraphQL or REST?
+/octo:debate -d adversarial Review auth.ts security
+```
+
+**Participants:**
+- 🔴 **Codex CLI**: Technical perspective
+- 🟡 **Gemini CLI**: Ecosystem perspective  
+- 🔵 **Claude**: Moderator and synthesis
+
+**Options:**
+- `-r N`, `--rounds N`: Number of debate rounds (default: 2)
+- `-d STYLE`, `--debate-style STYLE`: quick, thorough, adversarial, collaborative
+
+**Output:**
+- Synthesis with recommendations
+- Consensus score (percentage agreement)
+- Areas of disagreement highlighted
+
+---
+
+### 4. /octo:research
+
+Deep multi-source research with synthesis
+
+```bash
+/octo:research htmx vs react in 2026
+```
+
+**What it does:**
+- Parallel research using Codex CLI + Gemini CLI + Claude
+- Multi-source synthesis from three AI perspectives
+- Technical implementation analysis (Codex)
+- Ecosystem breadth and alternatives (Gemini)
+- Strategic synthesis (Claude)
+
+**Visual indicator:** 🐙 🔍
+
+Alias: `/octo:discover`
+
+---
+
+### 5. /octo:review
+
+Code review with security + 4x10 scoring
+
+```bash
+/octo:review src/auth.ts
+/octo:review src/components/
+```
+
+**What it does:**
+- Comprehensive code quality analysis
+- Security vulnerability detection (OWASP)
+- Architecture review
+- Best practices enforcement
+- 4-dimension scoring: correctness, security, performance, maintainability
+
+**Multi-perspective review:**
+- 🔴 Codex: Code quality analysis
+- 🟡 Gemini: Security and edge cases
+- 🔵 Claude: Synthesis and recommendations
+
+---
+
+### 6. /octo:tdd
+
+Test-driven development with red-green-refactor
+
+```bash
+/octo:tdd create user auth
+```
+
+**What it does:**
+- **Red**: Write failing test first
+- **Green**: Minimal code to pass
+- **Refactor**: Improve while keeping tests green
+
+**Enforces test discipline:**
+- Tests written before implementation
+- Incremental feature development
+- Continuous validation
+
+---
+
+### 7. /octo:security
+
+OWASP vulnerability scan + remediation
+
+```bash
+/octo:security src/api/
+```
+
+**What it does:**
+- OWASP Top 10 vulnerability scanning
+- Authentication and authorization review
+- Input validation checks
+- Red team analysis (adversarial testing)
+
+**Security-first review:**
+- SQL injection detection
+- XSS vulnerability scanning
+- Authentication bypass checks
+- Sensitive data exposure analysis
+
+---
+
+### 8. /octo:prd
+
+AI-optimized PRD with 100-point scoring
+
+```bash
+/octo:prd mobile checkout redesign
+```
+
+**What it does:**
+- Generates product requirements document
+- 100-point scoring across dimensions
+- Stakeholder analysis
+- Success metrics definition
+
+---
+
+## Smart router
+
+The smart router (`/octo`) maps natural language to commands automatically—no need to memorize command names.
+
+### How it works
+
+```bash
+/octo <describe what you want>
+```
+
+The router analyzes your request using keyword matching and confidence scoring, then routes to the optimal workflow.
+
+### Routing intelligence
+
+<Tabs>
+  <Tab title="Research">
+    **Keywords:** research, investigate, explore, learn, study, understand, analyze
+    
+    **Routes to:** `/octo:discover`
+    
+    **Confidence threshold:** 70%
+    
+    **Example:**
+    ```bash
+    /octo research OAuth authentication patterns
+    # → Routes to /octo:discover
+    # 🔍 Multi-AI research and exploration
+    ```
+  </Tab>
+  
+  <Tab title="Build">
+    **Keywords (clear):** build X, create Y, implement Z, develop X
+    
+    **Routes to:** `/octo:develop`
+    
+    **Confidence threshold:** 80%
+    
+    **Example:**
+    ```bash
+    /octo build user authentication with JWT
+    # → Routes to /octo:develop
+    # 🛠️ Multi-AI implementation with quality gates
+    ```
+  </Tab>
+  
+  <Tab title="Validate">
+    **Keywords:** validate, review, check, audit, inspect, verify
+    
+    **Routes to:** `/octo:review`
+    
+    **Confidence threshold:** 75%
+    
+    **Example:**
+    ```bash
+    /octo validate the authentication implementation
+    # → Routes to /octo:review
+    # 🛡️ Multi-AI quality assurance
+    ```
+  </Tab>
+  
+  <Tab title="Debate">
+    **Keywords:** should, vs, or, compare, versus, decide, which
+    
+    **Routes to:** `/octo:debate`
+    
+    **Confidence threshold:** 70%
+    
+    **Example:**
+    ```bash
+    /octo should we use TypeScript or JavaScript?
+    # → Routes to /octo:debate
+    # 🐙 Three-way AI debate
+    ```
+  </Tab>
+  
+  <Tab title="Lifecycle">
+    **Keywords:** end-to-end, complete, full, entire, whole
+    
+    **Routes to:** `/octo:embrace`
+    
+    **Confidence threshold:** 85%
+    
+    **Example:**
+    ```bash
+    /octo complete implementation of payment system
+    # → Routes to /octo:embrace
+    # 🐙 Full 4-phase workflow
+    ```
+  </Tab>
+</Tabs>
+
+### Confidence levels
+
+**>80% confidence**: Auto-routes with notification
+```
+✓ Routing to Research workflow (/octo:discover)
+```
+
+**70-80% confidence**: Shows suggestion and asks for confirmation
+```
+I think you want: Implementation workflow (/octo:develop)
+Should I proceed with this workflow? (yes/no)
+```
+
+**Less than 70% confidence**: Asks user to clarify intent
+```
+I'm not sure which workflow fits best. Here are your options:
+1. Research - Multi-AI research and exploration
+2. Build - Implementation with quality gates
+3. Validate - Quality assurance and review
+...
+```
+
+### Natural language examples
+
+<CodeGroup>
+```bash Research intent
+/octo research OAuth security patterns
+# High confidence (95%)
+# → /octo:discover
+```
+
+```bash Build intent (clear)
+/octo build payment processing system
+# High confidence (90%)
+# → /octo:develop
+```
+
+```bash Build intent (vague)
+/octo create something for users
+# Low confidence (40%)
+# → Asks for clarification
+```
+
+```bash Debate intent
+/octo should we use Redis or Memcached?
+# High confidence (90%)
+# → /octo:debate
+```
+</CodeGroup>
+
+## Command chaining and composition
+
+While Claude Octopus doesn't support explicit command chaining syntax, you can compose workflows through the smart router or by running commands sequentially.
+
+### Sequential workflows
+
+Run phases individually for more control:
+
+<Steps>
+  <Step title="Discover">
+    Research the problem space
+    
+    ```bash
+    /octo:discover OAuth authentication patterns
+    ```
+    
+    Review the synthesis document, then proceed to define.
+  </Step>
+  
+  <Step title="Define">
+    Clarify requirements and scope
+    
+    ```bash
+    /octo:define requirements for OAuth implementation
+    ```
+    
+    Build consensus on approach before implementing.
+  </Step>
+  
+  <Step title="Develop">
+    Implement with quality gates
+    
+    ```bash
+    /octo:develop OAuth authentication system
+    ```
+    
+    Implementation validated against 75% consensus threshold.
+  </Step>
+  
+  <Step title="Deliver">
+    Final validation and review
+    
+    ```bash
+    /octo:deliver OAuth implementation
+    ```
+    
+    Multi-AI validation produces go/no-go recommendation.
+  </Step>
+</Steps>
+
+### Suggested chaining
+
+The smart router can suggest workflow chains:
+
+```bash
+/octo build and validate authentication system
+# Router suggests: /octo:develop → /octo:review
+```
+
+### Workflow combinations
+
+**Research → Debate → Build:**
+```bash
+# 1. Research options
+/octo research session storage solutions
+
+# 2. Debate top candidates
+/octo debate Redis vs Memcached
+
+# 3. Implement winner
+/octo develop Redis session store
+```
+
+**Build → Review → Security:**
+```bash
+# 1. Implement feature
+/octo develop user authentication
+
+# 2. Code review
+/octo review src/auth/
+
+# 3. Security audit
+/octo security src/auth/
+```
+
+## Best practices
+
+<Accordion title="Use the smart router for exploratory work">
+  When you're not sure which workflow fits, let the router analyze your intent:
+  
+  ```bash
+  /octo I need to improve our API performance
+  ```
+  
+  The router will suggest appropriate workflows based on keywords and context.
+</Accordion>
+
+<Accordion title="Run individual phases for complex features">
+  For high-stakes features, run phases individually instead of using embrace:
+  
+  - Review research synthesis before defining requirements
+  - Review consensus before implementing
+  - Intervene if quality gates fail
+  
+  This gives you maximum control and oversight.
+</Accordion>
+
+<Accordion title="Use factory mode for well-specified projects">
+  When you have a clear spec, factory mode automates the entire pipeline:
+  
+  ```bash
+  /octo:factory --spec ./specs/api-redesign.md
+  ```
+  
+  Holdout testing ensures the implementation satisfies blind scenarios.
+</Accordion>
+
+<Accordion title="Leverage debate for architectural decisions">
+  Before implementing major features, use debate to explore trade-offs:
+  
+  ```bash
+  /octo debate monorepo vs microservices for our platform
+  ```
+  
+  Three AI perspectives reduce blind spots in decision-making.
+</Accordion>
+
+<Accordion title="Check provider status before multi-AI workflows">
+  Run setup to verify provider availability:
+  
+  ```bash
+  /octo:setup
+  ```
+  
+  Multi-AI workflows work best with all three providers configured.
+</Accordion>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Working with workflows" icon="diagram-project" href="/guides/workflows">
+    Learn about workflow progression, quality gates, and choosing the right workflow
+  </Card>
+  
+  <Card title="Command reference" icon="terminal" href="/commands/overview">
+    Complete reference for all 39+ commands
+  </Card>
+  
+  <Card title="Configuring providers" icon="gear" href="/guides/providers">
+    Set up Codex, Gemini, and cost-aware provider selection
+  </Card>
+  
+  <Card title="Configuration" icon="sliders" href="/guides/configuration">
+    Environment variables, autonomy modes, and custom hooks
+  </Card>
+</CardGroup>

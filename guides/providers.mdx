@@ -1,0 +1,511 @@
+---
+title: Configuring AI providers
+description: Set up Codex, Gemini, and Claude providers with OAuth or API keys, understand cost implications, and configure smart provider selection
+---
+
+# Configuring AI providers
+
+Claude Octopus orchestrates up to three AI providers: Codex (OpenAI), Gemini (Google), and Claude (Anthropic). This guide covers authentication, cost awareness, and provider selection.
+
+## Provider roles
+
+Each provider has a distinct role in multi-AI workflows:
+
+<CardGroup cols={3}>
+  <Card title="Codex (OpenAI)" icon="circle" iconType="solid" color="#ff0000">
+    **🔴 Implementation depth**
+    
+    - Code patterns and technical analysis
+    - Architecture decisions
+    - Framework-specific guidance
+    - Debugging assistance
+  </Card>
+  
+  <Card title="Gemini (Google)" icon="circle" iconType="solid" color="#ffaa00">
+    **🟡 Ecosystem breadth**
+    
+    - Alternatives and market trends
+    - Security review perspectives
+    - Research synthesis
+    - Community insights
+  </Card>
+  
+  <Card title="Claude (Anthropic)" icon="circle" iconType="solid" color="#0066ff">
+    **🔵 Orchestration**
+    
+    - Quality gates and validation
+    - Consensus building
+    - Final synthesis
+    - Strategic guidance
+  </Card>
+</CardGroup>
+
+Providers run in parallel for research, sequentially for problem scoping, and adversarially for review.
+
+## Provider authentication
+
+Claude Octopus supports two authentication methods: **OAuth** (recommended) and **API keys**.
+
+### OAuth (recommended)
+
+OAuth uses your existing AI subscriptions—no per-token billing.
+
+<Tabs>
+  <Tab title="Codex">
+    **Authentication:**
+    ```bash
+    codex login
+    ```
+    
+    **What you need:**
+    - Active ChatGPT subscription (Plus, Team, or Enterprise)
+    - Codex CLI installed
+    
+    **Cost:**
+    - Included in ChatGPT subscription
+    - No additional per-token charges
+    
+    **OAuth credentials stored:**
+    ```
+    ~/.codex/auth.json
+    ```
+    
+    **Installation:**
+    ```bash
+    # macOS
+    brew install codex-cli
+    
+    # Linux
+    curl -fsSL https://codex.dev/install.sh | sh
+    ```
+  </Tab>
+  
+  <Tab title="Gemini">
+    **Authentication:**
+    ```bash
+    gemini auth
+    ```
+    
+    **What you need:**
+    - Google account with AI subscription
+    - Gemini CLI installed
+    
+    **Cost:**
+    - Included in AI subscription
+    - No additional per-token charges
+    
+    **OAuth credentials stored:**
+    ```
+    ~/.gemini/oauth_creds.json
+    ```
+    
+    **Installation:**
+    ```bash
+    # macOS
+    brew install gemini-cli
+    
+    # Linux
+    curl -fsSL https://gemini.dev/install.sh | sh
+    ```
+  </Tab>
+  
+  <Tab title="Claude">
+    **Authentication:**
+    - Built into Claude Code
+    - No separate authentication needed
+    
+    **Cost:**
+    - Included with Claude Code subscription
+    - Opus 4.6: $5/$25 per MTok (standard)
+    - Opus 4.6 Fast: $30/$150 per MTok (6x cost, lower latency)
+    
+    **No setup required** ✓
+  </Tab>
+</Tabs>
+
+### API keys
+
+API keys use per-token billing—you pay for each API call.
+
+<Tabs>
+  <Tab title="Codex">
+    **Set environment variable:**
+    ```bash
+    export OPENAI_API_KEY="sk-..."
+    ```
+    
+    **Get API key:**
+    1. Visit [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+    2. Create new secret key
+    3. Add to environment variables
+    
+    **Cost (per-token billing):**
+    - GPT-5.3-Codex: $1.75/$14 per MTok input/output
+    - Estimated: ~$0.02-0.10 per query
+    
+    **Add to shell profile:**
+    ```bash
+    # ~/.bashrc or ~/.zshrc
+    export OPENAI_API_KEY="sk-..."
+    ```
+  </Tab>
+  
+  <Tab title="Gemini">
+    **Set environment variable:**
+    ```bash
+    export GEMINI_API_KEY="..."
+    # or
+    export GOOGLE_API_KEY="..."
+    ```
+    
+    **Get API key:**
+    1. Visit [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+    2. Create API key
+    3. Add to environment variables
+    
+    **Cost (per-token billing):**
+    - Gemini Pro: ~$0.01-0.03 per query
+    - Flash mode: cheaper for simple queries
+    
+    **Add to shell profile:**
+    ```bash
+    # ~/.bashrc or ~/.zshrc
+    export GEMINI_API_KEY="..."
+    ```
+  </Tab>
+  
+  <Tab title="Claude">
+    **Built-in authentication**
+    
+    - No API key needed
+    - Included with Claude Code subscription
+    
+    **Cost:**
+    - Included in subscription (Sonnet 4.6)
+    - Opus 4.6: $5/$25 per MTok
+    - Opus 4.6 Fast: $30/$150 per MTok
+  </Tab>
+</Tabs>
+
+<Warning>
+**OAuth vs API keys:** OAuth users pay nothing beyond existing subscriptions. API key users pay per token. If you have ChatGPT Plus or Google AI subscriptions, use OAuth.
+</Warning>
+
+## What works with just Claude
+
+Claude Octopus works with **zero external providers**. You get every feature on day one:
+
+**Single-provider features:**
+- ✅ All 33 personas
+- ✅ Structured workflows (discover, define, develop, deliver)
+- ✅ Smart routing (`/octo` command)
+- ✅ Context detection
+- ✅ Every skill
+- ✅ Quality gates
+- ✅ Command composition
+
+**Multi-AI features activate when external providers are configured:**
+- Parallel research (Codex + Gemini + Claude)
+- Adversarial debate (three-way)
+- Cross-model review (consensus building)
+- Provider-specific strengths (implementation depth + ecosystem breadth)
+
+### Running without external providers
+
+```bash
+# Check provider status
+/octo:setup
+```
+
+**Output:**
+```
+Claude Octopus Setup Status
+
+Providers:
+  Claude: ✓ Available (built-in)
+  Codex CLI: ✗ Not installed
+  Gemini CLI: ✗ Not installed
+
+Single-provider mode active.
+All workflows available with Claude.
+Add Codex or Gemini for multi-AI features.
+```
+
+Workflows adapt automatically:
+- Research phase uses Claude only (no parallel multi-AI research)
+- Consensus building uses Claude reasoning (no cross-model debate)
+- Review uses Claude quality gates (no adversarial cross-checking)
+
+## Adding Codex and Gemini
+
+Add external providers to unlock multi-AI orchestration.
+
+<Steps>
+  <Step title="Install CLIs">
+    Install Codex and/or Gemini CLIs:
+    
+    ```bash
+    # macOS
+    brew install codex-cli gemini-cli
+    
+    # Linux
+    curl -fsSL https://codex.dev/install.sh | sh
+    curl -fsSL https://gemini.dev/install.sh | sh
+    ```
+  </Step>
+  
+  <Step title="Authenticate">
+    Choose OAuth (recommended) or API keys:
+    
+    **OAuth:**
+    ```bash
+    codex login
+    gemini auth
+    ```
+    
+    **API keys:**
+    ```bash
+    export OPENAI_API_KEY="sk-..."
+    export GEMINI_API_KEY="..."
+    ```
+  </Step>
+  
+  <Step title="Verify setup">
+    Run setup to verify providers:
+    
+    ```bash
+    /octo:setup
+    ```
+    
+    **Expected output:**
+    ```
+    Claude Octopus Setup Status
+    
+    Providers:
+      Claude: ✓ Available (built-in)
+      Codex CLI: ✓ Available (OAuth)
+      Gemini CLI: ✓ Available (OAuth)
+    
+    Multi-AI mode active ✓
+    All workflows ready.
+    
+    Try: /octo research OAuth patterns
+    ```
+  </Step>
+</Steps>
+
+## Cost awareness and provider selection
+
+Claude Octopus provides full cost transparency with visual indicators and smart routing.
+
+### Visual indicators
+
+When multi-AI workflows run, you'll see exactly which providers are active:
+
+```
+🐙 **CLAUDE OCTOPUS ACTIVATED** - Multi-provider research mode
+🔍 Discover Phase: Researching OAuth authentication patterns
+
+Providers:
+🔴 Codex CLI - Technical implementation analysis
+🟡 Gemini CLI - Ecosystem and community research  
+🔵 Claude - Strategic synthesis
+```
+
+**Indicator reference:**
+
+| Indicator | Provider | Cost Source |
+|-----------|----------|-------------|
+| 🔴 | Codex CLI | Your OPENAI_API_KEY or ChatGPT subscription |
+| 🟡 | Gemini CLI | Your GEMINI_API_KEY or Google AI subscription |
+| 🔵 | Claude | Included with Claude Code subscription |
+| 🐙 | Multi-AI mode | Multiple providers active |
+
+<Tip>
+Visual indicators appear before workflows start. If you see external provider indicators (🔴 🟡), those will hit your API keys or subscriptions.
+</Tip>
+
+### Cost comparison
+
+<Accordion title="Codex (OpenAI)">
+  **Models:**
+  - GPT-5.3-Codex: $1.75/$14 per MTok input/output
+  - Spark: 15x faster than standard
+  - Mini: ~$0.30/$1.25 per MTok
+  
+  **Estimated cost per query:**
+  - Simple: ~$0.01-0.02
+  - Complex: ~$0.05-0.10
+  - With context: ~$0.10-0.15
+  
+  **Best for:**
+  - Technical implementation analysis
+  - Code generation
+  - Framework-specific guidance
+</Accordion>
+
+<Accordion title="Gemini (Google)">
+  **Models:**
+  - Gemini Pro: Standard model
+  - Flash: Faster, cheaper for simple queries
+  
+  **Estimated cost per query:**
+  - Simple: ~$0.01
+  - Complex: ~$0.02-0.03
+  
+  **Best for:**
+  - Ecosystem research
+  - Market trends
+  - Alternative approaches
+</Accordion>
+
+<Accordion title="Claude (Anthropic)">
+  **Models:**
+  - Sonnet 4.6: Included with Claude Code subscription
+  - Opus 4.6: $5/$25 per MTok input/output
+  - Opus 4.6 Fast: $30/$150 per MTok (6x cost, lower latency)
+  
+  **Cost:**
+  - Sonnet: Included (no additional cost)
+  - Opus: Extra-usage billing
+  - Fast Opus: 6x more expensive (use sparingly)
+  
+  **Best for:**
+  - Orchestration and synthesis
+  - Quality gates
+  - Consensus building
+</Accordion>
+
+### Smart cost routing
+
+Claude Octopus routes to the cheapest provider that can handle the job.
+
+**Routing logic:**
+1. **Simple tasks** → Claude Sonnet (free with subscription)
+2. **Technical implementation** → Codex if available, else Claude Opus
+3. **Ecosystem research** → Gemini if available, else Claude Sonnet
+4. **Complex reasoning** → Claude Opus or Codex depending on task
+5. **Interactive queries** → Fast mode only when user is actively waiting
+
+**Override routing:**
+```bash
+# Force specific provider
+export OCTOPUS_CODEX_MODEL="claude-opus-4-6"
+/octo research advanced ML architectures
+# → Uses Opus instead of Codex
+
+# Disable external providers temporarily
+export OCTOPUS_DISABLE_CODEX=true
+export OCTOPUS_DISABLE_GEMINI=true
+/octo research OAuth patterns
+# → Uses Claude only
+```
+
+### Fast Opus mode (Claude Code v2.1.36+)
+
+<Warning>
+**Fast Opus is 6x more expensive** than standard Opus ($30/$150 per MTok vs $5/$25). It provides lower latency but identical quality.
+</Warning>
+
+**When fast mode is used:**
+- Interactive single-shot Opus queries where user is actively waiting
+- Never in autonomous/background mode (no human waiting = no latency benefit)
+
+**Default behavior:**
+- Standard mode for all multi-phase workflows
+- Fast mode only for interactive queries
+
+**Override:**
+```bash
+# Force fast everywhere (costly!)
+export OCTOPUS_OPUS_MODE=fast
+
+# Force standard everywhere
+export OCTOPUS_OPUS_MODE=standard
+```
+
+### Cost estimation
+
+**Typical workflow costs:**
+
+| Workflow | Providers | Estimated Cost |
+|----------|-----------|----------------|
+| `/octo:discover` | Claude only | $0 (included) |
+| `/octo:discover` | Codex + Gemini + Claude | ~$0.05-0.15 |
+| `/octo:debate` | Codex + Gemini + Claude | ~$0.10-0.30 |
+| `/octo:embrace` | Claude only | $0 (included) |
+| `/octo:embrace` | Codex + Gemini + Claude | ~$0.30-0.80 |
+| `/octo:factory` | Codex + Gemini + Claude | ~$0.50-2.00 |
+
+<Tip>
+OAuth users with ChatGPT Plus and Google AI subscriptions pay **$0 beyond their subscriptions** for Codex and Gemini queries.
+</Tip>
+
+## Provider configuration reference
+
+### Environment variables
+
+```bash
+# Authentication (API key method)
+OPENAI_API_KEY="sk-..."              # Codex API key
+GEMINI_API_KEY="..."                 # Gemini API key
+GOOGLE_API_KEY="..."                 # Alternative to GEMINI_API_KEY
+
+# Provider control
+OCTOPUS_DISABLE_CODEX=true           # Disable Codex temporarily
+OCTOPUS_DISABLE_GEMINI=true          # Disable Gemini temporarily
+
+# Model selection
+OCTOPUS_CODEX_MODEL="gpt-5.3-codex" # Override Codex model
+OCTOPUS_GEMINI_MODEL="gemini-pro"    # Override Gemini model
+OCTOPUS_OPUS_MODE="standard"         # Claude Opus mode (standard/fast)
+
+# Timeout configuration
+CODEX_TIMEOUT=120                     # Codex timeout in seconds
+GEMINI_TIMEOUT=120                    # Gemini timeout in seconds
+```
+
+### Provider detection
+
+Check which providers are available:
+
+```bash
+# System check
+/octo:doctor providers
+
+# Full diagnostics
+/octo:doctor
+```
+
+**Output:**
+```
+Provider Status:
+  Claude Code: v2.1.50 ✓
+  Codex CLI: v1.2.3 ✓ (OAuth authenticated)
+  Gemini CLI: v0.8.1 ✓ (API key configured)
+
+Authentication:
+  Codex: OAuth via ~/.codex/auth.json ✓
+  Gemini: API key via GEMINI_API_KEY ✓
+  Claude: Built-in ✓
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Using commands" icon="terminal" href="/guides/commands">
+    Learn command structure, the smart router, and the top 8 commands
+  </Card>
+  
+  <Card title="Working with workflows" icon="diagram-project" href="/guides/workflows">
+    Understand workflow progression, quality gates, and autonomy modes
+  </Card>
+  
+  <Card title="Configuration" icon="gear" href="/guides/configuration">
+    Environment variables, settings, and custom hooks
+  </Card>
+  
+  <Card title="Visual indicators" icon="eye" href="/concepts/multi-ai-orchestration">
+    Deep dive into cost transparency and provider status
+  </Card>
+</CardGroup>
